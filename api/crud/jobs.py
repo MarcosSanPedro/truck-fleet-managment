@@ -9,7 +9,7 @@ def get_job(db: Session, job_id: int):
     return db.query(Job).filter(Job.id == job_id).first()
 
 def create_job(db: Session, job: JobCreate):
-    db_job = Job(**job.dict(), status="PENDING")
+    db_job = Job(**job.model_dump())
     db.add(db_job)
     db.commit()
     db.refresh(db_job)

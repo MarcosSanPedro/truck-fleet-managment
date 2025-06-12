@@ -1,11 +1,32 @@
-import "./index.css";
-export function App() {
+import React, { useState } from 'react';
+import { Layout } from './components/layout';
+import { Dashboard } from './components/dashboard';
+import { Drivers } from './pages/Drivers';
+import { Jobs } from './pages/Jobs';
+import { Trucks } from './pages/Trucks';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'drivers':
+        return <Drivers />;
+      case 'jobs':
+        return <Jobs />;
+      case 'trucks':
+        return <Trucks />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="container mx-auto text-center relative z-10">
-      <div className="flex justify-center items-center gap-8 mb-8">
-        <h1 className="text-4xl font-bold">adjiasfjaioj</h1>
-      </div>
-    </div>
+    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+      {renderContent()}
+    </Layout>
   );
 }
 

@@ -36,3 +36,10 @@ def delete_driver(driver_id: int, db: Session = Depends(get_db)):
     if not deleted:
         raise HTTPException(status_code=404, detail="Driver not found")
     return {"detail": "Driver deleted successfully"}
+
+@driver_router.put("/disable/{driver_id}", response_model=DriverOut)
+def disable_driver(driver_id: int, db: Session = Depends(get_db)):
+    updated = crud_drivers.disable_driver(db, driver_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Driver not found")
+    return updated
