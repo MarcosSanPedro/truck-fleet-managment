@@ -1,5 +1,5 @@
 [project]
-name = "api"
+name = "truck-fleet-managment"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -10,3 +10,10 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.34.3",
 ]
+
+[project.scripts]
+mendez = "uvicorn main:app --reload"
+
+# [build-system]
+# requires = ["setuptools", "wheel"]
+# build-backend = "setuptools.build_meta"
