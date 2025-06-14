@@ -4,26 +4,10 @@ from typing import List
 from schemas.trucks import TruckCreate, TruckUpdate, TruckOut
 import crud.trucks as crud_truck
 from db.session import get_db
-import requests
 
 truck_router = APIRouter()
 
 
-def validate_car(make: str, model: str) -> bool:
-    base_url = "https://.opendatasoft.com/api/explore/v2.1/catalog/datasets/all-vehicles-model/records"
-
-    params = {
-        "where": f"make = '{make}' AND model = '{model}'",
-        "select": "make,model",
-        "limit": 1,
-    }
-
-    response = requests.get(base_url, params=params)
-
-    if response.status_code != 200:
-        return False
-
-    return len(response.json().get("results", [])) > 0
 
 # GET /trucks - Obtener todos los camiones
 @truck_router.get("/", response_model=List[TruckOut])
