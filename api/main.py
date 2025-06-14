@@ -28,11 +28,3 @@ Base.metadata.create_all(bind=engine)
 app.include_router(truck_router, prefix="/trucks", tags=["Trucks"])
 app.include_router(driver_router, prefix="/drivers", tags=["Drivers"])
 app.include_router(job_router, prefix="/jobs", tags=["Jobs"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

@@ -35,6 +35,6 @@ def disable_driver(db: Session, driver_id: int):
     db_driver = db.query(Driver).filter(Driver.id == driver_id).first()
     if db_driver:
         db_driver.is_active = False
-        db.commit
+        db.commit()
         return db_driver
     return "no driver found"
