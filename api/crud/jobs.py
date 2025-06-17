@@ -18,7 +18,7 @@ def create_job(db: Session, job: JobCreate):
 def update_job(db: Session, job_id: int, updated: JobUpdate):
     db_job = db.query(Job).filter(Job.id == job_id).first()
     if db_job:
-        for key, value in updated.dict().items():
+        for key, value in updated.model_dump().items():
             setattr(db_job, key, value)
         db.commit()
         db.refresh(db_job)

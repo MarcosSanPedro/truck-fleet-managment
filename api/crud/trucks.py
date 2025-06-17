@@ -12,7 +12,7 @@ def get_truck(db: Session, truck_id: int):
 
 # POST: Create new truck
 def create_truck(db: Session, truck: TruckCreate):
-    db_truck = Truck(**truck.dict())
+    db_truck = Truck(**truck.model_dump())
     db.add(db_truck)
     db.commit()
     db.refresh(db_truck)
@@ -22,7 +22,7 @@ def create_truck(db: Session, truck: TruckCreate):
 def update_truck(db: Session, truck_id: int, updated: TruckUpdate):
     db_truck = db.query(Truck).filter(Truck.id == truck_id).first()
     if db_truck:
-        for key, value in updated.dict().items():
+        for key, value in updated.model_dump().items():
             setattr(db_truck, key, value)
         db.commit()
         db.refresh(db_truck)

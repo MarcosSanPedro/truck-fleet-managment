@@ -1,8 +1,4 @@
-# schemas/truck.py
-
 from pydantic import BaseModel
-
-
 class TruckBase(BaseModel):
     asign_driver: str
     make: str

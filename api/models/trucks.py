@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, Boolean, String
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from models.base import Base
 
 class Truck(Base):
-    __tablename__ = "trucks" 
+    __tablename__ = "trucks"
     id = Column(Integer, primary_key=True, index=True)
-    asign_driver = Column(String, nullable=False)
+    assign_driver = Column(String, nullable=False)
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
@@ -13,5 +14,7 @@ class Truck(Base):
     vin = Column(String, nullable=False)
     plate = Column(String, nullable=False)
 
+    maintenances = relationship("Maintenance", back_populates="truck")
 
-#! we need to add a relationship to the driver model
+# Optional: Import Maintenance after class definition
+# from .maintenance import Maintenance  # Comment out to avoid circular import

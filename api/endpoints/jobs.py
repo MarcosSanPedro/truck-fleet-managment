@@ -1,11 +1,11 @@
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
-
 from schemas.jobs import JobCreate, JobUpdate, JobOut
 import crud.jobs as crud_jobs
 from db.session import get_db
+from sqlalchemy.orm import Session
+
 
 job_router = APIRouter()
 

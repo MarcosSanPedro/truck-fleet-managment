@@ -9,7 +9,7 @@ def get_driver(db: Session, driver_id: int):
     return db.query(Driver).filter(Driver.id == driver_id).first()
 
 def create_driver(db: Session, driver: DriverCreate):
-    db_driver = Driver(**driver.dict())
+    db_driver = Driver(**driver.model_dump())
     db.add(db_driver)
     db.commit()
     db.refresh(db_driver)
@@ -18,7 +18,7 @@ def create_driver(db: Session, driver: DriverCreate):
 def update_driver(db: Session, driver_id: int, updated: DriverUpdate):
     db_driver = db.query(Driver).filter(Driver.id == driver_id).first()
     if db_driver:
-        for key, value in updated.dict().items():
+        for key, value in updated.model_dump().items():
             setattr(db_driver, key, value)
         db.commit()
         db.refresh(db_driver)
