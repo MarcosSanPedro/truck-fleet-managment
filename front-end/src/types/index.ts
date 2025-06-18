@@ -20,7 +20,7 @@ export interface Driver {
   
   export interface Truck {
     id?: number;
-    asign_driver: string;
+    assign_driver: string;
     make: string;
     model: string;
     year: number;
@@ -29,5 +29,15 @@ export interface Driver {
     vin: string;
     plate: string;
   }
+
+  export interface Maintenance {
+    id?: number;
+    truck_id : number;
+    mileage: number;
+    description : string;
+    type: string;
+    date: Date;
+    next_scheduled: Date
+  }
   
-  export type EntityType = 'drivers' | 'jobs' | 'trucks';
+  export type EntityType = 'drivers' | 'jobs' | 'trucks' | 'maintenance';

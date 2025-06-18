@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 class TruckBase(BaseModel):
-    asign_driver: str
+    assign_driver: str
     make: str
     model: str
     year: int

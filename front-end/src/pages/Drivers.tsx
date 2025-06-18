@@ -20,7 +20,7 @@ export const Drivers: React.FC = () => {
   const loadDrivers = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getDrivers();
+      const data = await apiService.get<Driver>("drivers");
       setDrivers(data);
     } catch (error) {
       console.error('Error loading drivers:', error);
@@ -57,7 +57,7 @@ export const Drivers: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this driver?')) {
       try {
         if (driver.id) {
-          await apiService.deleteDriver(driver.id);
+          await apiService.delete("drivers",driver.id);
         }
         setDrivers(prev => prev.filter(d => d.id !== driver.id));
       } catch (error) {
@@ -69,10 +69,11 @@ export const Drivers: React.FC = () => {
   const handleSubmit = async (driverData: Omit<Driver, 'id'>) => {
     try {
       if (editingDriver && editingDriver.id) {
-        const updated = await apiService.updateDriver(editingDriver.id, driverData);
+        const updated = await apiService.update("drivers", editingDriver.id , driverData );
         setDrivers(prev => prev.map(d => d.id === editingDriver.id ? updated : d));
       } else {
-        const created = await apiService.createDriver(driverData);
+        console.log('hi')
+        const created = await apiService.create<Driver>("drivers", driverData);
         setDrivers(prev => [...prev, created]);
       }
       setIsModalOpen(false);

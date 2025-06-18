@@ -9,7 +9,7 @@ interface TruckFormProps {
 
 export const TruckForm: React.FC<TruckFormProps> = ({ truck, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<Omit<Truck, 'id'>>({
-    asign_driver: '',
+    assign_driver: '',
     make: '',
     model: '',
     year: new Date().getFullYear(),
@@ -22,7 +22,7 @@ export const TruckForm: React.FC<TruckFormProps> = ({ truck, onSubmit, onCancel 
   useEffect(() => {
     if (truck) {
       setFormData({
-        asign_driver: truck.asign_driver,
+        assign_driver: truck.assign_driver,
         make: truck.make,
         model: truck.model,
         year: truck.year,
@@ -50,14 +50,14 @@ export const TruckForm: React.FC<TruckFormProps> = ({ truck, onSubmit, onCancel 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="asign_driver" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="assign_driver" className="block text-sm font-medium text-gray-700 mb-1">
           Assigned Driver
         </label>
         <input
           type="text"
-          id="asign_driver"
-          name="asign_driver"
-          value={formData.asign_driver}
+          id="assign_driver"
+          name="assign_driver"
+          value={formData.assign_driver}
           onChange={handleChange}
           placeholder="Driver Name or ID"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

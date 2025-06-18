@@ -13,8 +13,8 @@ class Truck(Base):
     mileage = Column(Integer, nullable=False)
     vin = Column(String, nullable=False)
     plate = Column(String, nullable=False)
-
     maintenances = relationship("Maintenance", back_populates="truck")
+
 
 # Optional: Import Maintenance after class definition
 # from .maintenance import Maintenance  # Comment out to avoid circular import

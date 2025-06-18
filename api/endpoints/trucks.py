@@ -11,7 +11,7 @@ truck_router = APIRouter()
 
 # GET /trucks - Obtener todos los camiones
 @truck_router.get("/", response_model=List[TruckOut])
-def read_trucks(db: Session = Depends(get_db)):
+async def read_trucks(db: Session = Depends(get_db)):
     return crud_truck.get_trucks(db)
 
 # GET /trucks/{truck_id} - Obtener un camión por ID
@@ -25,7 +25,6 @@ def read_truck(truck_id: int, db: Session = Depends(get_db)):
 # POST /trucks - Crear un camión nuevo
 @truck_router.post("/", response_model=TruckOut)
 def create_truck(truck: TruckCreate, db: Session = Depends(get_db)):
-
     return crud_truck.create_truck(db, truck)
 
 # PUT /trucks/{truck_id} - Actualizar un camión existente
@@ -39,7 +38,11 @@ def update_truck(truck_id: int, truck: TruckUpdate, db: Session = Depends(get_db
 # DELETE /trucks/{truck_id} - Eliminar un camión
 @truck_router.delete("/{truck_id}")
 def delete_truck(truck_id: int, db: Session = Depends(get_db)):
-    deleted_truck = crud_truck.delete_truck(db, truck_id)
+    try:
+        deleted_truck = crud_truck.delete_truck(db, truck_id)
+    except Exception as err:
+        print('hi mendez', err)
+
     if not deleted_truck:
         raise HTTPException(status_code=404, detail="Truck not found")
     return {"detail": "Truck deleted successfully"}

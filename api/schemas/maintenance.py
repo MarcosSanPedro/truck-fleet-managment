@@ -1,14 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, FutureDate
 from datetime import date
 
+
+
 class MaintenanceBase(BaseModel):
-    maintenance_id: int
     truck_id : int
-    maintenance_mileage: int
-    maintenance_description : str
-    maintenance_type: str
-    maintenance_date: date
-    maintenance_next_scheduled: date
+    mileage: int
+    description : str
+    type: str
+    date: date
+    next_scheduled: FutureDate
 
 
 class MaintenanceCreate(MaintenanceBase):

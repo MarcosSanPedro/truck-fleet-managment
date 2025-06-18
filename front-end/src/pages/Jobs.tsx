@@ -20,7 +20,7 @@ export const Jobs: React.FC = () => {
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getJobs();
+      const data = await apiService.get<Job>("jobs");
       setJobs(data);
     } catch (error) {
       console.error('Error loading jobs:', error);
@@ -70,7 +70,7 @@ export const Jobs: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this job?')) {
       try {
         if (job.id) {
-          await apiService.deleteJob(job.id);
+          await apiService.delete("jobs", job.id);
         }
         setJobs(prev => prev.filter(j => j.id !== job.id));
       } catch (error) {
@@ -82,10 +82,11 @@ export const Jobs: React.FC = () => {
   const handleSubmit = async (jobData: Omit<Job, 'id'>) => {
     try {
       if (editingJob && editingJob.id) {
-        const updated = await apiService.updateJob(editingJob.id, jobData);
+        const updated = await apiService.update("jobs", editingJob.id, jobData);
+
         setJobs(prev => prev.map(j => j.id === editingJob.id ? updated : j));
       } else {
-        const created = await apiService.createJob(jobData);
+        const created = await apiService.create<Job>("jobs", jobData);
         setJobs(prev => [...prev, created]);
       }
       setIsModalOpen(false);

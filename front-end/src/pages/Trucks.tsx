@@ -20,7 +20,7 @@ export const Trucks: React.FC = () => {
   const loadTrucks = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getTrucks();
+      const data = await apiService.get<Truck>("trucks");
       setTrucks(data);
     } catch (error) {
       console.error('Error loading trucks:', error);
@@ -28,7 +28,7 @@ export const Trucks: React.FC = () => {
       setTrucks([
         {
           id: 1,
-          asign_driver: 'John Smith',
+          assign_driver: 'John Smith',
           make: 'Freightliner',
           model: 'Cascadia',
           year: 2022,
@@ -39,7 +39,7 @@ export const Trucks: React.FC = () => {
         },
         {
           id: 2,
-          asign_driver: 'Jane Doe',
+          assign_driver: 'Jane Doe',
           make: 'Peterbilt',
           model: '579',
           year: 2021,
@@ -50,7 +50,7 @@ export const Trucks: React.FC = () => {
         },
         {
           id: 3,
-          asign_driver: '',
+          assign_driver: '',
           make: 'Kenworth',
           model: 'T680',
           year: 2023,
@@ -76,25 +76,27 @@ export const Trucks: React.FC = () => {
   };
 
   const handleDelete = async (truck: Truck) => {
-    if (window.confirm('Are you sure you want to delete this truck?')) {
+    // if (window.confirm('Are you sure you want to delete this truck?')) {
       try {
+        console.log(truck.id)
         if (truck.id) {
-          await apiService.deleteTruck(truck.id);
+          await apiService.delete("trucks", truck.id);
+          console.log(truck.id)
         }
         setTrucks(prev => prev.filter(t => t.id !== truck.id));
       } catch (error) {
         console.error('Error deleting truck:', error);
       }
-    }
+    // }
   };
 
   const handleSubmit = async (truckData: Omit<Truck, 'id'>) => {
     try {
       if (editingTruck && editingTruck.id) {
-        const updated = await apiService.updateTruck(editingTruck.id, truckData);
+        const updated = await apiService.update("trucks", editingTruck.id, truckData);
         setTrucks(prev => prev.map(t => t.id === editingTruck.id ? updated : t));
       } else {
-        const created = await apiService.createTruck(truckData);
+        const created = await apiService.create<Truck>('trucks', truckData);
         setTrucks(prev => [...prev, created]);
       }
       setIsModalOpen(false);
@@ -117,7 +119,7 @@ export const Trucks: React.FC = () => {
     `${truck.make} ${truck.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     truck.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
     truck.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    truck.asign_driver.toLowerCase().includes(searchTerm.toLowerCase())
+    truck.assign_driver.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const columns = [
@@ -140,7 +142,7 @@ export const Trucks: React.FC = () => {
     },
     { key: 'plate', label: 'License Plate' },
     { 
-      key: 'asign_driver', 
+      key: 'assign_driver', 
       label: 'Assigned Driver',
       render: (value: string) => (
         <span className={value ? 'text-gray-900' : 'text-gray-400 italic'}>

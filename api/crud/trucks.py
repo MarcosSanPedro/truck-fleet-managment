@@ -12,7 +12,9 @@ def get_truck(db: Session, truck_id: int):
 
 # POST: Create new truck
 def create_truck(db: Session, truck: TruckCreate):
+    print('test')
     db_truck = Truck(**truck.model_dump())
+    print('test')
     db.add(db_truck)
     db.commit()
     db.refresh(db_truck)
@@ -30,7 +32,10 @@ def update_truck(db: Session, truck_id: int, updated: TruckUpdate):
 
 # DELETE: Remove truck
 def delete_truck(db: Session, truck_id: int):
-    db_truck = db.query(Truck).filter(Truck.id == truck_id).first()
+    try:
+        db_truck = db.query(Truck).filter(Truck.id == truck_id).first()
+    except Exception as err:
+        print("[xx] sampiss", err)
     if db_truck:
         db.delete(db_truck)
         db.commit()
