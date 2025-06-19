@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
 import type { Job } from '../types/index';
 import { apiService } from '../services/api';

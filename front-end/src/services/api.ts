@@ -1,4 +1,3 @@
-import type { Driver, Job, Truck, Maintenance, EntityType } from '../types';
 
 const API_BASE_URL = 'http://localhost:8000/';
 
@@ -62,6 +61,12 @@ class ApiService {
   async get<T>(endpoint: string): Promise<T[]> {
     return this.request<T[]>(endpoint);
   }
+
+  async getById<T>(endpoint: string, id: number): Promise<T> {
+    return this.request<T>(`${endpoint}/${id}`);
+  }
+
+  
 
   /**
    * Creates a new entity at the specified endpoint.

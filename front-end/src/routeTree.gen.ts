@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrucksRouteImport } from './routes/Trucks'
 import { Route as JobsRouteImport } from './routes/Jobs'
-import { Route as DriversRouteImport } from './routes/Drivers'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DriversDriverIdRouteImport } from './routes/drivers/$driverId'
 
 const TrucksRoute = TrucksRouteImport.update({
   id: '/Trucks',
@@ -24,49 +24,49 @@ const JobsRoute = JobsRouteImport.update({
   path: '/Jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DriversRoute = DriversRouteImport.update({
-  id: '/Drivers',
-  path: '/Drivers',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriversDriverIdRoute = DriversDriverIdRouteImport.update({
+  id: '/drivers/$driverId',
+  path: '/drivers/$driverId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
+  '/drivers/$driverId': typeof DriversDriverIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
+  '/drivers/$driverId': typeof DriversDriverIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
+  '/drivers/$driverId': typeof DriversDriverIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/Drivers' | '/Jobs' | '/Trucks'
+  fullPaths: '/' | '/Jobs' | '/Trucks' | '/drivers/$driverId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/Drivers' | '/Jobs' | '/Trucks'
-  id: '__root__' | '/' | '/Drivers' | '/Jobs' | '/Trucks'
+  to: '/' | '/Jobs' | '/Trucks' | '/drivers/$driverId'
+  id: '__root__' | '/' | '/Jobs' | '/Trucks' | '/drivers/$driverId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DriversRoute: typeof DriversRoute
   JobsRoute: typeof JobsRoute
   TrucksRoute: typeof TrucksRoute
+  DriversDriverIdRoute: typeof DriversDriverIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,13 +85,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/Drivers': {
-      id: '/Drivers'
-      path: '/Drivers'
-      fullPath: '/Drivers'
-      preLoaderRoute: typeof DriversRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -99,14 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/drivers/$driverId': {
+      id: '/drivers/$driverId'
+      path: '/drivers/$driverId'
+      fullPath: '/drivers/$driverId'
+      preLoaderRoute: typeof DriversDriverIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DriversRoute: DriversRoute,
   JobsRoute: JobsRoute,
   TrucksRoute: TrucksRoute,
+  DriversDriverIdRoute: DriversDriverIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
