@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
 import type { Job } from '../types/index';
@@ -6,7 +7,11 @@ import { Table } from '../components/ui/table';
 import { Modal } from '../components/ui/Modal';
 import { JobForm } from '../components/forms/jobsForm';
 
-export const Jobs: React.FC = () => {
+export const Route = createFileRoute('/Jobs')({
+  component: Jobs,
+})
+
+export default function Jobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);

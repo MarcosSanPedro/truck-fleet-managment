@@ -6,7 +6,7 @@
   "main": "src/index.html",
   "module": "src/index.html",
   "scripts": {
-    "dev": "bun --hot src/index.html",
+    "dev": "vite --port 3000",
     "start": "NODE_ENV=production bun src/index.html",
     "build": "bun run build.ts"
   },
@@ -15,6 +15,10 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
+    "@tailwindcss/vite": "^4.1.10",
+    "@tanstack/react-router": "^1.121.27",
+    "@tanstack/react-router-devtools": "^1.121.27",
+    "@vitejs/plugin-react": "^4.5.2",
     "bun-plugin-tailwind": "^0.0.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -28,8 +32,11 @@
     "zod": "^3.25.63"
   },
   "devDependencies": {
+    "@tanstack/router-cli": "^1.121.27",
+    "@tanstack/router-plugin": "^1.121.27",
+    "@types/bun": "latest",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "@types/bun": "latest"
+    "vite": "^6.3.5"
   }
 }

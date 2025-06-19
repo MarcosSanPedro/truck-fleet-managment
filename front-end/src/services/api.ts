@@ -2,9 +2,34 @@ import type { Driver, Job, Truck, Maintenance, EntityType } from '../types';
 
 const API_BASE_URL = 'http://localhost:8000/';
 
+/**
+ * ApiService class for handling API requests to the backend.
+ * Provides methods for CRUD operations on entities.
+ */
 class ApiService {
+  private baseUrl: string;
+
+  /**
+   * Creates an instance of ApiService.
+   * 
+   * @param {string} baseUrl - The base URL of the API.
+   */
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Makes an API request to the specified endpoint and returns the JSON response.
+   * 
+   * @template T - The expected response type.
+   * @param {string} endpoint - The API endpoint to request.
+   * @param {RequestInit} [options] - Optional fetch options.
+   * @returns {Promise<T>} A promise that resolves to the response data.
+   * @throws {Error} If the API request fails.
+   */
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = new URL(endpoint, this.baseUrl).toString();
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
@@ -13,131 +38,98 @@ class ApiService {
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage += ` - ${JSON.stringify(errorData)}`;
+      } catch {
+        // Ignore if response is not JSON
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
   }
 
-
-  async get<T>(endpoint: EntityType): Promise<T[]> {
-    return this.request(endpoint)
+  /**
+   * Retrieves a list of entities from the specified endpoint.
+   * 
+   * @template T - The type of the entities.
+   * @param {string} endpoint - The API endpoint for the entities.
+   * @returns {Promise<T[]>} A promise that resolves to an array of entities.
+   * @throws {Error} If the API request fails.
+   */
+  async get<T>(endpoint: string): Promise<T[]> {
+    return this.request<T[]>(endpoint);
   }
 
-  async create<T>(endpoint: EntityType, body: Omit<T, "id">): Promise<T> {
-    return this.request(endpoint, {
+  /**
+   * Creates a new entity at the specified endpoint.
+   * 
+   * @template T - The type of the entity.
+   * @param {string} endpoint - The API endpoint for the entities.
+   * @param {Omit<T, "id">} body - The entity data to create, excluding the id.
+   * @returns {Promise<T>} A promise that resolves to the created entity.
+   * @throws {Error} If the API request fails.
+   */
+  async create<T>(endpoint: string, body: Omit<T, "id">): Promise<T> {
+    return this.request<T>(endpoint, {
       method: "POST",
-      body: JSON.stringify(body)
-    })
+      body: JSON.stringify(body),
+    });
   }
 
-  async update<T>(endpoint: EntityType,id:number, body: Partial<T>): Promise<T>{
-    return this.request(`${endpoint}/${id}`,{
+  /**
+   * Updates an existing entity at the specified endpoint.
+   * 
+   * @template T - The type of the entity.
+   * @param {string} endpoint - The API endpoint for the entities.
+   * @param {number} id - The ID of the entity to update.
+   * @param {Partial<T>} body - The partial entity data to update.
+   * @returns {Promise<T>} A promise that resolves to the updated entity.
+   * @throws {Error} If the API request fails.
+   */
+  async update<T>(endpoint: string, id: number, body: Partial<T>): Promise<T> {
+    return this.request<T>(`${endpoint}/${id}`, {
       method: "PUT",
-      body: JSON.stringify(body)
-    })
+      body: JSON.stringify(body),
+    });
   }
 
-  async delete(endpoint: EntityType, id: number): Promise<{detail: String }>{
-    return this.request(`${endpoint}/${id}`, {
+  /**
+   * Deletes an entity at the specified endpoint.
+   * 
+   * @param {string} endpoint - The API endpoint for the entities.
+   * @param {number} id - The ID of the entity to delete.
+   * @returns {Promise<void>} A promise that resolves when the entity is deleted.
+   * @throws {Error} If the API request fails.
+   */
+  async delete(endpoint: string, id: number): Promise<void> {
+    const url = new URL(`${endpoint}/${id}`, this.baseUrl).toString();
+    const response = await fetch(url, {
       method: "DELETE",
-    })
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage += ` - ${JSON.stringify(errorData)}`;
+      } catch {
+        // Ignore if response is not JSON
+      }
+      throw new Error(errorMessage);
+    }
   }
-
-//   // Driver endpoints
-//   async getDrivers(): Promise<Driver[]> {
-//     return this.request<Driver[]>('/drivers/');{}
-//   }
-
-//   async getDriver(id: number): Promise<Driver> {
-//     return this.request<Driver>(`/drivers/${id}`);
-//   }
-
-//   async createDriver(driver: Omit<Driver, 'id'>): Promise<Driver> {
-//     return this.request<Driver>('/drivers', {
-//       method: 'POST',
-//       body: JSON.stringify(driver),
-//     });
-//   }
-
-//   async updateDriver(id: number, driver: Partial<Driver>): Promise<Driver> {
-//     return this.request<Driver>(`/drivers/${id}`, {
-//       method: 'PUT',
-//       body: JSON.stringify(driver),
-//     });
-//   }
-
-//   async deleteDriver(id: number): Promise<void> {
-//     return this.request<void>(`/drivers/${id}`, {
-//       method: 'DELETE',
-//     });
-//   }
-
-//   // Job endpoints
-//   async getJobs(): Promise<Job[]> {
-//     return this.request<Job[]>('/jobs');
-//   }
-
-//   async getJob(id: number): Promise<Job> {
-//     return this.request<Job>(`/jobs/${id}`);
-//   }
-
-//   async createJob(job: Omit<Job, 'id'>): Promise<Job> {
-//     return this.request<Job>('/jobs', {
-//       method: 'POST',
-//       body: JSON.stringify(job),
-//     });
-//   }
-
-//   async updateJob(id: number, job: Partial<Job>): Promise<Job> {
-//     return this.request<Job>(`/jobs/${id}`, {
-//       method: 'PUT',
-//       body: JSON.stringify(job),
-//     });
-//   }
-
-//   async deleteJob(id: number): Promise<void> {
-//     return this.request<void>(`/jobs/${id}`, {
-//       method: 'DELETE',
-//     });
-//   }
-
-//   // Truck endpoints
-//   async getTrucks(): Promise<Truck[]> {
-//     return this.request<Truck[]>('/trucks');
-//   }
-
-//   async getTruck(id: number): Promise<Truck> {
-//     return this.request<Truck>(`/trucks/${id}`);
-//   }
-
-//   async createTruck(truck: Omit<Truck, 'id'>): Promise<Truck> {
-//     return this.request<Truck>('/trucks', {
-//       method: 'POST',
-//       body: JSON.stringify(truck),
-//     });
-//   }
-
-//   async updateTruck(id: number, truck: Partial<Truck>): Promise<Truck> {
-//     return this.request<Truck>(`/trucks/${id}`, {
-//       method: 'PUT',
-//       body: JSON.stringify(truck),
-//     });
-//   }
-
-//   async deleteTruck(id: number): Promise<void> {
-//     return this.request<void>(`/trucks/${id}`, {
-//       method: 'DELETE',
-//     });
-//   }
-
-
 }
 
 // Maintenance endpoints
 
 
-export const apiService = new ApiService();
+export const apiService = new ApiService(API_BASE_URL);
 
 
 

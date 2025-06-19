@@ -1,3 +1,5 @@
+import asyncio
+import time
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -9,7 +11,7 @@ from db.session import get_db
 driver_router = APIRouter()
 
 @driver_router.get("/", response_model=List[DriverOut])
-def read_driver(db: Session = Depends(get_db)):
+async def read_driver(db: Session = Depends(get_db)):
     return crud_drivers.get_drivers(db)
 
 @driver_router.get("/{driver_id}", response_model=DriverOut)

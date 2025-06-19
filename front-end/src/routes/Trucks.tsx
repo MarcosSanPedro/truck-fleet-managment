@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router'
 import React, { useState, useEffect } from 'react';
 import { Plus, Truck as TruckIcon } from 'lucide-react';
 import type { Truck } from '../types/index';
@@ -6,16 +7,18 @@ import { Table } from '../components/ui/table';
 import { Modal } from '../components/ui/Modal';
 import { TruckForm } from '../components/forms/trucksForm';
 
-export const Trucks: React.FC = () => {
+export const Route = createFileRoute('/Trucks')({
+  component: Trucks,
+})
+
+export default function Trucks() {
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTruck, setEditingTruck] = useState<Truck | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadTrucks();
-  }, []);
+
 
   const loadTrucks = async () => {
     try {
@@ -65,6 +68,10 @@ export const Trucks: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    loadTrucks();
+  }, []);
+  
   const handleCreate = () => {
     setEditingTruck(undefined);
     setIsModalOpen(true);
