@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from db.session import get_db
-from models import Maintenance
+from models import maintenance as Maintenance
 from schemas.maintenance import MaintenanceCreate, MaintenanceOut, MaintenanceUpdate
 from sqlalchemy.orm import Session
 import crud.maintenance as crud_maintenance
