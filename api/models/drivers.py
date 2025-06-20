@@ -1,20 +1,15 @@
-from sqlalchemy import Column, String, JSON
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, JSON
 from models.base import Base
 
 
-class DriverModel(Base):
+class Driver(Base):
     __tablename__ = "drivers"
-    
-    id = Column(String, primary_key=True, index=True)
-    first_name = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    first_name =  Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    photo = Column(String)
-    email = Column(String, unique=True, nullable=False, index=True)
-    phone = Column(String, nullable=False)
+    phone_number = Column(String, nullable=False)
+    email= Column(String, nullable=False)
+    license_number = Column(String, nullable=False)
+    license_expiration = Column(DateTime, nullable=False)
+    is_active = Column( Boolean, nullable=False)
     address = Column(JSON, nullable=False)
-    license = Column(JSON, nullable=False)
-    employment = Column(JSON, nullable=False)
-    performance = Column(JSON, nullable=False)
-    current_assignment = Column(JSON, nullable=False)
-    certifications = Column(JSON, nullable=False)
-    emergency_contact = Column(JSON, nullable=False)

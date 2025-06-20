@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, UserCheck, UserX, Star, Truck } from "lucide-react";
+import { Plus, UserCheck, UserX } from "lucide-react";
 import type { Driver } from "../types";
 import { apiService } from "../services/api";
 import { Table } from "../components/ui/table";
@@ -13,7 +13,7 @@ import { DriverForm } from "../components/forms/driversForms";
 interface TableColumn {
   key: string;
   label: string;
-  render?: (value: any, row: Driver) => React.ReactNode;
+  render?: (value: any) => React.ReactNode;
 }
 
 /**
@@ -30,85 +30,29 @@ const columns: TableColumn[] = [
   { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
-  { key: "phone", label: "Phone" },
-  {
-    key: "license",
-    label: "License #",
-    render: (_, row: Driver) => row.license.number,
-  },
+  { key: "phone_number", label: "Phone" },
+  { key: "license_number", label: "License #" },
   {
     key: "license_expiration",
     label: "License Exp.",
-    render: (_, row: Driver) => {
-      const expirationDate = new Date(row.license.expiration_date);
-      const isExpiringSoon = expirationDate.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000; // 30 days
-      return (
-        <span className={isExpiringSoon ? "text-red-600 font-medium" : ""}>
-          {expirationDate.toLocaleDateString()}
-        </span>
-      );
-    },
+    render: (value: string) => new Date(value).toLocaleDateString(),
   },
   {
-    key: "employment_status",
+    key: "is_active",
     label: "Status",
-    render: (_, row: Driver) => {
-      const status = row.employment.status;
-      const statusConfig = {
-        active: { bg: "bg-green-100", text: "text-green-800", icon: UserCheck },
-        inactive: { bg: "bg-red-100", text: "text-red-800", icon: UserX },
-        "on-leave": { bg: "bg-yellow-100", text: "text-yellow-800", icon: UserX },
-        suspended: { bg: "bg-red-100", text: "text-red-800", icon: UserX },
-      };
-      
-      const config = statusConfig[status];
-      const Icon = config.icon;
-      
-      return (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
-        >
-          <Icon size={12} className="mr-1" />
-          {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-        </span>
-      );
-    },
-  },
-  {
-    key: "assignment_status",
-    label: "Assignment",
-    render: (_, row: Driver) => {
-      const status = row.current_assignment.status;
-      const statusConfig = {
-        available: { bg: "bg-green-100", text: "text-green-800" },
-        "on-route": { bg: "bg-blue-100", text: "text-blue-800" },
-        loading: { bg: "bg-yellow-100", text: "text-yellow-800" },
-        maintenance: { bg: "bg-orange-100", text: "text-orange-800" },
-        "off-duty": { bg: "bg-gray-100", text: "text-gray-800" },
-      };
-      
-      const config = statusConfig[status];
-      
-      return (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
-        >
-          <Truck size={12} className="mr-1" />
-          {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-        </span>
-      );
-    },
-  },
-  {
-    key: "safety_rating",
-    label: "Safety Rating",
-    render: (_, row: Driver) => (
-      <div className="flex items-center">
-        <Star size={12} className="text-yellow-500 mr-1" />
-        <span className="text-sm font-medium">
-          {row.performance.safety_rating.toFixed(1)}
-        </span>
-      </div>
+    render: (value: boolean) => (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        }`}
+      >
+        {value ? (
+          <UserCheck size={12} className="mr-1" />
+        ) : (
+          <UserX size={12} className="mr-1" />
+        )}
+        {value ? "Active" : "Inactive"}
+      </span>
     ),
   },
 ];
@@ -130,7 +74,7 @@ export const Route = createFileRoute("/Drivers")({
  * Componente principal para la gestión de conductores
  * @returns {JSX.Element} Componente de gestión de conductores
  */
-export default function Drivers() {
+export default function Drivers(){
   // Estados del componente
   const initialDrivers = Route.useLoaderData() as Driver[];
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers || []);
@@ -192,7 +136,7 @@ export default function Drivers() {
     setError(null);
 
     try {
-      await apiService.delete("drivers", Number(driver.id));
+      await apiService.delete("drivers", driver.id);
       setDrivers((prev) => prev.filter((d) => d.id !== driver.id));
     } catch (error) {
       console.error("Error deleting driver:", error);
@@ -215,7 +159,7 @@ export default function Drivers() {
         // Actualizar conductor existente
         const updatedDriver = await apiService.update<Driver>(
           "drivers",
-          Number(editingDriver.id),
+          editingDriver.id,
           driverData
         );
         setDrivers((prev) =>
@@ -260,20 +204,12 @@ export default function Drivers() {
     const searchLower = searchTerm.toLowerCase();
     const fullName = `${driver.first_name} ${driver.last_name}`.toLowerCase();
     const email = driver.email.toLowerCase();
-    const licenseNumber = driver.license.number.toLowerCase();
-    const employeeId = driver.employment.employee_id.toLowerCase();
-    const truckNumber = driver.current_assignment.truck_number.toLowerCase();
-    const city = driver.address.city.toLowerCase();
-    const state = driver.address.state.toLowerCase();
+    const licenseNumber = driver.license_number.toLowerCase();
 
     return (
       fullName.includes(searchLower) ||
       email.includes(searchLower) ||
-      licenseNumber.includes(searchLower) ||
-      employeeId.includes(searchLower) ||
-      truckNumber.includes(searchLower) ||
-      city.includes(searchLower) ||
-      state.includes(searchLower)
+      licenseNumber.includes(searchLower)
     );
   });
 
@@ -283,9 +219,7 @@ export default function Drivers() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Drivers</h1>
-          <p className="text-gray-600">
-            Manage your fleet drivers ({drivers.length} total)
-          </p>
+          <p className="text-gray-600">Manage your fleet drivers</p>
         </div>
         <button
           onClick={handleCreate}
@@ -295,65 +229,6 @@ export default function Drivers() {
           <Plus size={16} className="mr-2" />
           Add Driver
         </button>
-      </div>
-
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center">
-            <UserCheck className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Drivers</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {drivers.filter(d => d.employment.status === 'active').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center">
-            <Truck className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">On Route</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {drivers.filter(d => d.current_assignment.status === 'on-route').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center">
-            <Star className="h-8 w-8 text-yellow-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Avg Safety Rating</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {drivers.length > 0 
-                  ? (drivers.reduce((sum, d) => sum + d.performance.safety_rating, 0) / drivers.length).toFixed(1)
-                  : '0.0'
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center">
-            <UserX className="h-8 w-8 text-red-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Expiring Licenses</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {drivers.filter(d => {
-                  const expiry = new Date(d.license.expiration_date);
-                  const thirtyDaysFromNow = new Date();
-                  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                  return expiry <= thirtyDaysFromNow;
-                }).length}
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Mensaje de error */}
@@ -370,20 +245,15 @@ export default function Drivers() {
         </div>
       )}
 
-      {/* Barra de búsqueda mejorada */}
+      {/* Barra de búsqueda */}
       <div className="max-w-md">
         <input
           type="text"
-          placeholder="Search by name, email, license, employee ID, truck, or location..."
+          placeholder="Search drivers..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {searchTerm && (
-          <p className="mt-1 text-sm text-gray-600">
-            Showing {filteredDrivers.length} of {drivers.length} drivers
-          </p>
-        )}
       </div>
 
       {/* Tabla de conductores */}
@@ -416,7 +286,7 @@ export default function Drivers() {
  * @param {EmptyTableProps} props - Las propiedades del componente
  * @returns {JSX.Element} Componente de tabla vacía
  */
-function EmptyTable({ columns }: EmptyTableProps) {
+function EmptyTable({ columns }: EmptyTableProps){
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -432,21 +302,6 @@ function EmptyTable({ columns }: EmptyTableProps) {
           <Plus size={16} className="mr-2" />
           Add Driver
         </button>
-      </div>
-
-      {/* Estadísticas vacías */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white p-4 rounded-lg shadow border animate-pulse">
-            <div className="flex items-center">
-              <div className="h-8 w-8 bg-gray-200 rounded"></div>
-              <div className="ml-4 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-20"></div>
-                <div className="h-6 bg-gray-200 rounded w-8"></div>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Barra de búsqueda deshabilitada */}
