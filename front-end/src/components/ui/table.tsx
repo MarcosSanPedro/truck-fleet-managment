@@ -1,5 +1,6 @@
 import React from 'react';
 import { Edit, Trash2 } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 interface Column {
   key: string;
@@ -7,15 +8,15 @@ interface Column {
   render?: (value: any, row: any) => React.ReactNode;
 }
 
-interface TableProps {
+interface TableProps<T extends {id: number}> {
   columns: Column[];
-  data: any[];
+  data: T[];
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   loading?: boolean;
 }
 
-export const Table: React.FC<TableProps> = ({ columns, data, onEdit, onDelete, loading }) => {
+export const Table: React.FC<TableProps<any>> = ({ columns, data, onEdit, onDelete, loading }) => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -42,7 +43,7 @@ export const Table: React.FC<TableProps> = ({ columns, data, onEdit, onDelete, l
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
-            <tr>
+            <tr> 
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -61,9 +62,12 @@ export const Table: React.FC<TableProps> = ({ columns, data, onEdit, onDelete, l
           <tbody className="bg-white divide-y divide-gray-200">
             {data.map((row, index) => (
               <tr key={row.id || index} className="hover:bg-gray-50">
+
                 {columns.map((column) => (
                   <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <Link className='whitespace-nowrap' to={`/drivers/$driverId`} params={{driverId: row.id}}>
                     {column.render ? column.render(row[column.key], row) : row[column.key]}
+                </Link>
                   </td>
                 ))}
                 {(onEdit || onDelete) && (
@@ -71,16 +75,16 @@ export const Table: React.FC<TableProps> = ({ columns, data, onEdit, onDelete, l
                     <div className="flex justify-end space-x-2">
                       {onEdit && (
                         <button
-                          onClick={() => onEdit(row)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                        onClick={() => onEdit(row)}
+                        className="text-blue-600 hover:text-blue-900 transition-colors"
                         >
                           <Edit size={16} />
                         </button>
                       )}
                       {onDelete && (
                         <button
-                          onClick={() => onDelete(row)}
-                          className="text-red-600 hover:text-red-900 transition-colors"
+                        onClick={() => onDelete(row)}
+                        className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>

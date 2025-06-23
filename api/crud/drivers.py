@@ -20,6 +20,7 @@ def create_driver(db: Session, driver: DriverCreate):
     db.refresh(db_driver)
     return db_driver
 
+
 # PUT: Update truck by ID
 def update_driver(db: Session, driver_id: int, updated: DriverUpdate):
     db_driver = db.query(Driver).filter(Driver.id == driver_id).first()

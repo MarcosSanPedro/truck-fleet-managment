@@ -1,22 +1,25 @@
 import argparse
 import random
+from datetime import date
 from faker import Faker
-from sqlalchemy import create_engine, Column, String, JSON, Integer, Date, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, JSON, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 # Define the base for SQLAlchemy models
 Base = declarative_base()
 
-# Driver model
+# Driver model based on Pydantic DriverOut/DriverBase
 class DriverModel(Base):
     __tablename__ = "drivers"
-    id = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)  # Changed from String to Integer
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    photo = Column(String)
+    phone_number = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False, index=True)
-    phone = Column(String, nullable=False)
+    license_number = Column(String, nullable=False)
+    license_expiration = Column(String, nullable=False)  # Stored as ISO date string
+    is_active = Column(Integer, nullable=False)  # SQLite doesn't have boolean; use Integer (0/1)
     address = Column(JSON, nullable=False)
     license = Column(JSON, nullable=False)
     employment = Column(JSON, nullable=False)
@@ -29,7 +32,7 @@ class DriverModel(Base):
 class Truck(Base):
     __tablename__ = "trucks"
     id = Column(Integer, primary_key=True, index=True)
-    assign_driver = Column(String, nullable=False)
+    assign_driver = Column(Integer, nullable=False)  # Changed to Integer to match drivers.id
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
@@ -77,50 +80,67 @@ def generate_job(id):
         job_status=random.choice(["Pending", "In Progress", "Completed", "Delayed"])
     )
 
-# Generate a driver
-def generate_driver(id, job_ids):
+# Generate a driver based on Pydantic models
+def generate_driver(id, truck_plates):
     first_name = faker.first_name()
     last_name = faker.last_name()
     email = f"{first_name.lower()}.{last_name.lower()}@example.com"
-    phone = faker.phone_number()
+    phone_number = faker.phone_number()[:12]  # Limit length to avoid issues
+    license_number = faker.bothify(text="D#######")
+    license_expiration = faker.date_between(start_date="today", end_date="+5y").isoformat()
+    is_active = random.choice([1, 0])
     address = {
         "street": faker.street_address(),
         "city": faker.city(),
         "state": faker.state_abbr(),
-        "zip": faker.zipcode()
+        "zip_code": faker.zipcode()
     }
     license = {
-        "number": faker.bothify(text="D#######"),
-        "expiration": faker.date_between(start_date="+1y", end_date="+5y").isoformat()
+        "number": license_number,
+        "license_class": random.choice(["A", "B", "C"]),
+        "endorsements": random.sample(["H", "N", "T", "P"], k=random.randint(0, 3)),
+        "is_valid": random.choice([True, False])
     }
     employment = {
-        "start_date": faker.date_between(start_date="-5y", end_date="today").isoformat(),
-        "position": random.choice(["Truck Driver", "Senior Driver", "Junior Driver"])
+        "hire_date": faker.date_between(start_date="-10y", end_date="today").isoformat(),
+        "years_experience": random.randint(1, 20),
+        "status": random.choice(["active", "inactive", "on-leave", "suspended"]),
+        "employee_id": faker.bothify(text="EMP#####")
     }
     performance = {
-        "on_time_deliveries": random.randint(80, 100),
-        "accidents": random.randint(0, 2)
+        "safety_rating": round(random.uniform(1.0, 5.0), 2),
+        "on_time_delivery_rate": round(random.uniform(0.7, 1.0), 2),
+        "total_miles_driven": random.randint(10000, 1000000),
+        "accidents_free": random.randint(0, 5)
     }
     current_assignment = {
-        "job_id": random.choice(job_ids),
-        "status": random.choice(["in_progress", "pending", "completed"])
-    } if job_ids else {"status": "none"}
-    certifications = [
-        {"type": random.choice(["Hazmat", "Tanker", "Forklift"]), "expiration": faker.date_between(start_date="today", end_date="+2y").isoformat()}
-        for _ in range(random.randint(0, 3))
-    ]
+        "truck_number": random.choice(truck_plates) if truck_plates else "UNASSIGNED",
+        "route": faker.city() + " to " + faker.city(),
+        "status": random.choice(["available", "on-route", "loading", "maintenance", "off-duty"])
+    }
+    dot_medical_cert = {
+        "expiration_date": faker.date_between(start_date="today", end_date="+2y").isoformat(),
+        "is_valid": random.choice([True, False])
+    }
+    certifications = {
+        "dot_medical_cert": dot_medical_cert,
+        "hazmat_endorsement": random.choice([True, False]),
+        "drug_test_date": faker.date_between(start_date="-1y", end_date="today").isoformat()
+    }
     emergency_contact = {
         "name": faker.name(),
         "relationship": random.choice(["Spouse", "Parent", "Sibling", "Friend"]),
-        "phone": faker.phone_number()
+        "phone": faker.phone_number()[:12]
     }
     return DriverModel(
         id=id,
         first_name=first_name,
         last_name=last_name,
-        photo=None,
+        phone_number=phone_number,
         email=email,
-        phone=phone,
+        license_number=license_number,
+        license_expiration=license_expiration,
+        is_active=is_active,
         address=address,
         license=license,
         employment=employment,
@@ -138,7 +158,7 @@ def generate_truck(id, driver_ids):
     color = random.choice(["Red", "Blue", "White", "Black"])
     mileage = random.randint(50000, 200000)
     vin = faker.vin()
-    plate = faker.license_plate()
+    plate = faker.bothify(text="??###")
     assign_driver = random.choice(driver_ids)
     return Truck(
         id=id,
@@ -172,7 +192,7 @@ def generate_maintenance(id, truck_ids):
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Seed an SQLite database with mock data using Faker.")
-parser.add_argument("--database", default="truckfleet.db", help="SQLite database file")
+parser.add_argument("--database", default="database.db", help="SQLite database file")
 parser.add_argument("--drivers", type=int, default=10, help="Number of drivers")
 parser.add_argument("--trucks", type=int, default=5, help="Number of trucks")
 parser.add_argument("--jobs", type=int, default=20, help="Number of jobs")
@@ -188,19 +208,18 @@ session = Session()
 Base.metadata.create_all(engine)
 
 # Generate data
-jobs = [generate_job(i+1) for i in range(args.jobs)]
-job_ids = [job.id for job in jobs]
-
-drivers = [generate_driver(f"driver{i+1}", job_ids) for i in range(args.drivers)]
-driver_ids = [driver.id for driver in drivers]
-
-trucks = [generate_truck(i+1, driver_ids) for i in range(args.trucks)]
+trucks = [generate_truck(i+1, [j+1 for j in range(args.drivers)]) for i in range(args.trucks)]
+truck_plates = [truck.plate for truck in trucks]
 truck_ids = [truck.id for truck in trucks]
+
+jobs = [generate_job(i+1) for i in range(args.jobs)]
+
+drivers = [generate_driver(i+1, truck_plates) for i in range(args.drivers)]
 
 maintenances = [generate_maintenance(i+1, truck_ids) for i in range(args.maintenances)]
 
 # Add all records to the database and commit
-session.add_all(jobs + drivers + trucks + maintenances)
+session.add_all(trucks + jobs + drivers + maintenances)
 session.commit()
 
 print(f"Database '{args.database}' created and seeded with {args.drivers} drivers, {args.trucks} trucks, {args.jobs} jobs, and {args.maintenances} maintenances.")

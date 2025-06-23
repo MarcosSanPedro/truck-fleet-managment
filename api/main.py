@@ -26,6 +26,6 @@ Base.metadata.create_all(bind=engine)
 
 # Registrar los routers
 app.include_router(truck_router, prefix="/trucks", tags=["Trucks"])
-app.include_router(driver_router, prefix="/drivers", tags=["DriverModel"])
+app.include_router(driver_router, prefix="/drivers", tags=["Driver"])
 app.include_router(job_router, prefix="/jobs", tags=["Jobs"])
 app.include_router(maintenance_router, prefix="/maintenance", tags=["Maintenance"])

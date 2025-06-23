@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Driver } from '../types/Driver;
+import type { Driver } from '../types/index';
 import { StatusBadge } from './statusBadge';
 import { PerformanceIndicator } from './performanceIndicator';
 import { 
@@ -23,14 +23,14 @@ import {
 } from 'lucide-react';
 
 interface DriverProfileProps {
-  driver: Driver;
+  driverInfo: Driver;
   onEdit: (driver: Driver) => void;
-  onDelete: (driverId: string) => void;
+  onDelete: (driverId: number) => void;
   onBack?: () => void;
 }
 
 export const DriverProfile: React.FC<DriverProfileProps> = ({ 
-  driver, 
+  driverInfo, 
   onEdit, 
   onDelete, 
   onBack 
@@ -38,21 +38,21 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isLicenseExpiringSoon = () => {
-    const expirationDate = new Date(driver.license.expirationDate);
+    const expirationDate = new Date(driverInfo.license.expirationDate);
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     return expirationDate <= thirtyDaysFromNow;
   };
 
   const isDotMedicalExpiringSoon = () => {
-    const expirationDate = new Date(driver.certifications.dotMedicalCert.expirationDate);
+    const expirationDate = new Date(driverInfo.certifications.dotMedicalCert.expirationDate);
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     return expirationDate <= thirtyDaysFromNow;
   };
 
   const handleDelete = () => {
-    onDelete(driver.id);
+    onDelete(driverInfo.id);
     setShowDeleteConfirm(false);
   };
 
@@ -90,7 +90,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
               </div>
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => onEdit(driver)}
+                  onClick={() => onEdit(driverInfo)}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   <Edit3 className="w-4 h-4 mr-2" />
@@ -116,13 +116,13 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
             <div className="flex items-start gap-6">
               <div className="relative">
                 <img
-                  src={driver.photo}
-                  alt={`${driver.firstName} ${driver.lastName}`}
+                  src={driverInfo.photo}
+                  alt={`${driverInfo.firstName} ${driverInfo.lastName}`}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                 />
                 <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-3 border-white shadow-md ${
-                  driver.employment.status === 'active' ? 'bg-green-500' : 
-                  driver.employment.status === 'suspended' ? 'bg-red-500' : 'bg-gray-400'
+                  driverInfo.employment.status === 'active' ? 'bg-green-500' : 
+                  driverInfo.employment.status === 'suspended' ? 'bg-red-500' : 'bg-gray-400'
                 }`} />
               </div>
               
@@ -130,15 +130,15 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      {driver.firstName} {driver.lastName}
+                      {driverInfo.firstName} {driverInfo.lastName}
                     </h2>
                     <div className="flex items-center mt-2 space-x-4">
                       <div className="flex items-center text-sm text-gray-500">
                         <User className="w-4 h-4 mr-1" />
-                        ID: {driver.employment.employeeId}
+                        ID: {driverInfo.employment.employeeId}
                       </div>
-                      <StatusBadge status={driver.employment.status} type="employment" />
-                      <StatusBadge status={driver.currentAssignment.status} type="assignment" />
+                      <StatusBadge status={driverInfo.employment.status} type="employment" />
+                      <StatusBadge status={driverInfo.currentAssignment.status} type="assignment" />
                     </div>
                   </div>
                 </div>
@@ -147,45 +147,45 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="space-y-3">
                     <div className="flex items-center text-gray-600">
                       <Phone className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>{driver.phone}</span>
+                      <span>{driverInfo.phone}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Mail className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>{driver.email}</span>
+                      <span>{driverInfo.email}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <MapPin className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>{driver.address.city}, {driver.address.state}</span>
+                      <span>{driverInfo.address.city}, {driverInfo.address.state}</span>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center text-gray-600">
                       <Calendar className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>{driver.employment.yearsExperience} years experience</span>
+                      <span>{driverInfo.employment.yearsExperience} years experience</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Award className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>Hired {formatDate(driver.employment.hireDate)}</span>
+                      <span>Hired {formatDate(driverInfo.employment.hireDate)}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Truck className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>Truck: {driver.currentAssignment.truckNumber}</span>
+                      <span>Truck: {driverInfo.currentAssignment.truckNumber}</span>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center text-gray-600">
                       <Star className="w-5 h-5 mr-3 text-yellow-500" />
-                      <span>Safety Rating: {driver.performance.safetyRating}/5</span>
+                      <span>Safety Rating: {driverInfo.performance.safetyRating}/5</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <CheckCircle className="w-5 h-5 mr-3 text-green-500" />
-                      <span>{driver.performance.onTimeDeliveryRate}% On-Time</span>
+                      <span>{driverInfo.performance.onTimeDeliveryRate}% On-Time</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Shield className="w-5 h-5 mr-3 text-blue-500" />
-                      <span>{driver.performance.accidentsFree} days accident-free</span>
+                      <span>{driverInfo.performance.accidentsFree} days accident-free</span>
                     </div>
                   </div>
                 </div>
@@ -209,31 +209,31 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-gray-900">CDL License</h4>
                     <div className="flex items-center space-x-2">
-                      {driver.license.isValid ? (
+                      {driverInfo.license.isValid ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       ) : (
                         <AlertTriangle className="w-5 h-5 text-red-500" />
                       )}
                       <span className={`text-sm font-medium ${
-                        driver.license.isValid ? 'text-green-600' : 'text-red-600'
+                        driverInfo.license.isValid ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {driver.license.isValid ? 'Valid' : 'Invalid'}
+                        {driverInfo.license.isValid ? 'Valid' : 'Invalid'}
                       </span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">License Number:</span>
-                      <div className="font-medium">{driver.license.number}</div>
+                      <div className="font-medium">{driverInfo.license.number}</div>
                     </div>
                     <div>
                       <span className="text-gray-500">Class:</span>
-                      <div className="font-medium">{driver.license.class}</div>
+                      <div className="font-medium">{driverInfo.license.class}</div>
                     </div>
                     <div>
                       <span className="text-gray-500">Expires:</span>
                       <div className={`font-medium ${isLicenseExpiringSoon() ? 'text-amber-600' : ''}`}>
-                        {formatDate(driver.license.expirationDate)}
+                        {formatDate(driverInfo.license.expirationDate)}
                         {isLicenseExpiringSoon() && (
                           <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
                             Expiring Soon
@@ -242,11 +242,11 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                       </div>
                     </div>
                   </div>
-                  {driver.license.endorsements.length > 0 && (
+                  {driverInfo.license.endorsements.length > 0 && (
                     <div className="mt-4">
                       <span className="text-gray-500 text-sm">Endorsements:</span>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {driver.license.endorsements.map((endorsement: string, index: number) => (
+                        {driverInfo.license.endorsements.map((endorsement: string, index: number) => (
                           <span
                             key={index}
                             className="inline-block px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
@@ -264,22 +264,22 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-gray-900">DOT Medical Certificate</h4>
                     <div className="flex items-center space-x-2">
-                      {driver.certifications.dotMedicalCert.isValid ? (
+                      {driverInfo.certifications.dotMedicalCert.isValid ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       ) : (
                         <AlertTriangle className="w-5 h-5 text-red-500" />
                       )}
                       <span className={`text-sm font-medium ${
-                        driver.certifications.dotMedicalCert.isValid ? 'text-green-600' : 'text-red-600'
+                        driverInfo.certifications.dotMedicalCert.isValid ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {driver.certifications.dotMedicalCert.isValid ? 'Valid' : 'Invalid'}
+                        {driverInfo.certifications.dotMedicalCert.isValid ? 'Valid' : 'Invalid'}
                       </span>
                     </div>
                   </div>
                   <div className="text-sm">
                     <span className="text-gray-500">Expires:</span>
                     <div className={`font-medium ${isDotMedicalExpiringSoon() ? 'text-amber-600' : ''}`}>
-                      {formatDate(driver.certifications.dotMedicalCert.expirationDate)}
+                      {formatDate(driverInfo.certifications.dotMedicalCert.expirationDate)}
                       {isDotMedicalExpiringSoon() && (
                         <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
                           Expiring Soon
@@ -296,14 +296,14 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                     <div>
                       <span className="text-gray-500">HAZMAT Endorsement:</span>
                       <div className={`font-medium ${
-                        driver.certifications.hazmatEndorsement ? 'text-green-600' : 'text-gray-600'
+                        driverInfo.certifications.hazmatEndorsement ? 'text-green-600' : 'text-gray-600'
                       }`}>
-                        {driver.certifications.hazmatEndorsement ? 'Yes' : 'No'}
+                        {driverInfo.certifications.hazmatEndorsement ? 'Yes' : 'No'}
                       </div>
                     </div>
                     <div>
                       <span className="text-gray-500">Last Drug Test:</span>
-                      <div className="font-medium">{formatDate(driver.certifications.drugTestDate)}</div>
+                      <div className="font-medium">{formatDate(driverInfo.certifications.drugTestDate)}</div>
                     </div>
                   </div>
                 </div>
@@ -324,22 +324,22 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                 <div className="grid grid-cols-2 gap-6">
                   <PerformanceIndicator
                     label="Safety Rating"
-                    value={driver.performance.safetyRating}
+                    value={driverInfo.performance.safetyRating}
                     type="rating"
                   />
                   <PerformanceIndicator
                     label="On-Time Delivery"
-                    value={driver.performance.onTimeDeliveryRate}
+                    value={driverInfo.performance.onTimeDeliveryRate}
                     type="percentage"
                   />
                   <PerformanceIndicator
                     label="Total Miles"
-                    value={driver.performance.totalMilesDriven}
+                    value={driverInfo.performance.totalMilesDriven}
                     type="number"
                   />
                   <PerformanceIndicator
                     label="Accident-Free Days"
-                    value={driver.performance.accidentsFree}
+                    value={driverInfo.performance.accidentsFree}
                     type="number"
                   />
                 </div>
@@ -358,17 +358,17 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm text-gray-500">Truck Number:</span>
-                      <div className="font-semibold text-blue-900">{driver.currentAssignment.truckNumber}</div>
+                      <div className="font-semibold text-blue-900">{driverInfo.currentAssignment.truckNumber}</div>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Status:</span>
                       <div className="mt-1">
-                        <StatusBadge status={driver.currentAssignment.status} type="assignment" />
+                        <StatusBadge status={driverInfo.currentAssignment.status} type="assignment" />
                       </div>
                     </div>
                     <div className="col-span-2">
                       <span className="text-sm text-gray-500">Route:</span>
-                      <div className="font-semibold text-blue-900">{driver.currentAssignment.route}</div>
+                      <div className="font-semibold text-blue-900">{driverInfo.currentAssignment.route}</div>
                     </div>
                   </div>
                 </div>
@@ -387,15 +387,15 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="space-y-3">
                     <div>
                       <span className="text-sm text-gray-500">Name:</span>
-                      <div className="font-semibold text-green-900">{driver.emergencyContact.name}</div>
+                      <div className="font-semibold text-green-900">{driverInfo.emergencyContact.name}</div>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Relationship:</span>
-                      <div className="font-medium text-green-800">{driver.emergencyContact.relationship}</div>
+                      <div className="font-medium text-green-800">{driverInfo.emergencyContact.relationship}</div>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Phone:</span>
-                      <div className="font-medium text-green-800">{driver.emergencyContact.phone}</div>
+                      <div className="font-medium text-green-800">{driverInfo.emergencyContact.phone}</div>
                     </div>
                   </div>
                 </div>
@@ -414,8 +414,8 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
             
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-purple-900">
-                <div className="font-semibold">{driver.address.street}</div>
-                <div>{driver.address.city}, {driver.address.state} {driver.address.zipCode}</div>
+                <div className="font-semibold">{driverInfo.address.street}</div>
+                <div>{driverInfo.address.city}, {driverInfo.address.state} {driverInfo.address.zipCode}</div>
               </div>
             </div>
           </div>
@@ -431,7 +431,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
               <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{driver.firstName} {driver.lastName}</strong>? 
+              Are you sure you want to delete <strong>{driverInfo.firstName} {driverInfo.lastName}</strong>? 
               This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">

@@ -1,164 +1,150 @@
-import React, { useState, useEffect } from 'react';
-import type { Driver } from '../../types/index';
+import React, { useState, useEffect } from "react";
+import type { Driver } from "../../types/index";
+import { emptyDriver } from "../../lib/data";
 
 interface DriverFormProps {
   driver?: Driver;
-  onSubmit: (driver: Omit<Driver, 'id'>) => void;
+  onSubmit: (driver: Partial<Omit<Driver, "id">>) => void;
   onCancel: () => void;
 }
 
-export const DriverForm: React.FC<DriverFormProps> = ({ driver, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<Driver, 'id'>>({
-    first_name: '',
-    last_name: '',
-    phone_number: '',
-    email: '',
-    license_number: '',
-    license_expiration: '',
-    is_active: true,
-  });
+export const DriverForm: React.FC<DriverFormProps> = ({
+  driver = emptyDriver,
+  onSubmit,
+  onCancel,
+}) => {
+  // Initialize formData with default values for nested objects
+  const [formData, setFormData] = useState<Partial<Omit<Driver, "id">>>({});
 
   useEffect(() => {
-    if (driver) {
-      setFormData({
-        first_name: driver.first_name,
-        last_name: driver.last_name,
-        phone_number: driver.phone_number,
-        email: driver.email,
-        license_number: driver.license_number,
-        license_expiration: driver.license_expiration,
-        is_active: driver.is_active,
-      });
-    }
+    setFormData((prev) => {
+      return {
+        ...prev,
+        ...driver,
+      };
+    });
   }, [driver]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
+  interface FormData {
+    [key: string]: string | number | { [nestedKey: string]: string | number };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    const { name, value, type, checked, dataset } = e.target;
+    const fieldKey = dataset.key; // Get data-key attribute for nested objects
+  
+    setFormData((prev: FormData) => {
+      // If data-key exists, update nested property
+      if (fieldKey) {
+        return {
+          ...prev,
+          [fieldKey]: {
+            ...(prev[fieldKey] as { [key: string]: string | number }),
+            [name]: type === "checkbox" ? checked : value,
+          },
+        };
+      }
+      // Otherwise, update top-level property
+      return {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+    });
+  };
+  // Define string fields with explicit type
+  // type StringField = keyof Pick<
+  //   Omit<Driver, "id">,
+  //   "firstName" | "lastName" | "email" | "phone" | "photo"
+  // >;
+
+  const nonNested = Object.fromEntries(
+    Object.entries(formData).filter(
+      ([key, value]) => typeof value === "string" || typeof value === "number"
+    )
+  ) as Partial<typeof formData>;
+
+  const nestedFields = Object.fromEntries(
+    Object.entries(formData).filter(([key, value]) => typeof value === "object")
+  ) as Partial<typeof formData>;
+
+  // Helper function to format field names for labels
+  const formatLabel = (key: string) => {
+    return key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase());
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
-            First Name
-          </label>
-          <input
-            type="text"
-            id="first_name"
-            name="first_name"
-            value={formData.first_name}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
-            Last Name
-          </label>
-          <input
-            type="text"
-            id="last_name"
-            name="last_name"
-            value={formData.last_name}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-      <div>
-        <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">
-          Phone Number
-        </label>
-        <input
-          type="tel"
-          id="phone_number"
-          name="phone_number"
-          value={formData.phone_number}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-      <div>
-        <label htmlFor="license_number" className="block text-sm font-medium text-gray-700 mb-1">
-          License Number
+      {Object.keys(formData).map((key) => {
+  if (
+    typeof formData[key] === "string" ||
+    typeof formData[key] === "number"
+  ) {
+    return (
+      <div key={key}>
+        <label
+          htmlFor={key}
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {formatLabel(key)}
         </label>
         <input
           type="text"
-          id="license_number"
-          name="license_number"
-          value={formData.license_number}
+          id={key}
+          name={key}
+          value={formData[key] as string | number} // Ensure proper typing
           onChange={handleChange}
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
-      <div>
-        <label htmlFor="license_expiration" className="block text-sm font-medium text-gray-700 mb-1">
-          License Expiration
+    );
+  }
+
+  if (typeof formData[key] === "object" && formData[key] !== null) {
+    return Object.keys(formData[key]).map((nestedKey) => (
+      <div key={`${key}.${nestedKey}`}>
+        <label
+          htmlFor={`${key}.${nestedKey}`}
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {formatLabel(nestedKey)}
         </label>
         <input
-          type="date"
-          id="license_expiration"
-          name="license_expiration"
-          value={formData.license_expiration}
+          type="text"
+          id={`${key}.${nestedKey}`}
+          name={nestedKey}
+          value={(formData[key] as { [key: string]: string | number })[nestedKey] || ""}
           onChange={handleChange}
+          data-key={key} // Use data-key to indicate parent object
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="is_active"
-          name="is_active"
-          checked={formData.is_active}
-          onChange={handleChange}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
-          Active Driver
-        </label>
+    ));
+  }
+  return null; // Handle unexpected cases
+})}
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="flex justify-end space-x-4">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
         >
-          {driver ? 'Update' : 'Create'} Driver
+          Submit
         </button>
       </div>
     </form>

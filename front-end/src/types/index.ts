@@ -1,12 +1,53 @@
 export interface Driver {
-  id?: number;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  photo: string;
   email: string;
-  license_number: string;
-  license_expiration: string;
-  is_active: boolean;
+  phone: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  license: {
+    number: string;
+    class: string;
+    expirationDate: string;
+    endorsements: string[];
+    isValid: boolean;
+  };
+  employment: {
+    hireDate: string;
+    yearsExperience: number;
+    status: 'active' | 'inactive' | 'on-leave' | 'suspended';
+    employeeId: string;
+  };
+  performance: {
+    safetyRating: number;
+    onTimeDeliveryRate: number;
+    totalMilesDriven: number;
+    accidentsFree: number;
+  };
+  currentAssignment: {
+    truckNumber: string;
+    route: string;
+    status: 'available' | 'on-route' | 'loading' | 'maintenance' | 'off-duty';
+  };
+  certifications: {
+    dotMedicalCert: {
+      expirationDate: string;
+      isValid: boolean;
+    };
+    hazmatEndorsement: boolean;
+    drugTestDate: string;
+  };
+  emergencyContact: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
 }
 
   export interface Job {

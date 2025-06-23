@@ -127,7 +127,7 @@ export default function Drivers(){
     }
 
     const confirmDelete = window.confirm(
-      `¿Está seguro de que desea eliminar al conductor ${driver.first_name} ${driver.last_name}?`
+      `¿Está seguro de que desea eliminar al conductor ${driver.firstName} ${driver.lastName}?`
     );
 
     if (!confirmDelete) return;
@@ -202,15 +202,13 @@ export default function Drivers(){
    */
   const filteredDrivers = drivers.filter((driver) => {
     const searchLower = searchTerm.toLowerCase();
-    const fullName = `${driver.first_name} ${driver.last_name}`.toLowerCase();
+    const fullName = `${driver.firstName} ${driver.lastName}`.toLowerCase();
     const email = driver.email.toLowerCase();
-    const licenseNumber = driver.license_number.toLowerCase();
+    const licenseNumber = driver.license;
 
     return (
       fullName.includes(searchLower) ||
-      email.includes(searchLower) ||
-      licenseNumber.includes(searchLower)
-    );
+      email.includes(searchLower));
   });
 
   return (
