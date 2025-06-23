@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { 
   ArrowLeft, 
   Edit3, 
@@ -39,18 +39,10 @@ export const Route = createFileRoute("/drivers/$driverId")({
   },
 });
 
-
-
-
-
 function DriversDetails() {
   const driver = Route.useLoaderData() as Driver | null;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(()=>{
-    console.log(driver)
-  },[driver])
 
   const handleDelete = useCallback(async () => {
     if (!driver) return;

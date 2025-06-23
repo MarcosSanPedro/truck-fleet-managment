@@ -137,7 +137,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                         ID: {driverInfo.employment.employeeId}
                       </div>
                       <StatusBadge status={driverInfo.employment.status} type="employment" />
-                      <StatusBadge status={driverInfo.currentAssignment.status} type="assignment" />
+                      <StatusBadge status={driverInfo.current_assignment.status} type="assignment" />
                     </div>
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Truck className="w-5 h-5 mr-3 text-gray-400" />
-                      <span>Truck: {driverInfo.currentAssignment.truckNumber}</span>
+                      <span>Truck: {driverInfo.current_assignment.truckNumber}</span>
                     </div>
                   </div>
 
@@ -329,17 +329,17 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm text-gray-500">Truck Number:</span>
-                      <div className="font-semibold text-blue-900">{driverInfo.currentAssignment.truckNumber}</div>
+                      <div className="font-semibold text-blue-900">{driverInfo.current_assignment.truckNumber}</div>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Status:</span>
                       <div className="mt-1">
-                        <StatusBadge status={driverInfo.currentAssignment.status} type="assignment" />
+                        <StatusBadge status={driverInfo.current_assignment.status} type="assignment" />
                       </div>
                     </div>
                     <div className="col-span-2">
                       <span className="text-sm text-gray-500">Route:</span>
-                      <div className="font-semibold text-blue-900">{driverInfo.currentAssignment.route}</div>
+                      <div className="font-semibold text-blue-900">{driverInfo.current_assignment.route}</div>
                     </div>
                   </div>
                 </div>

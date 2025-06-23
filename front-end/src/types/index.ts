@@ -29,7 +29,7 @@ export interface Driver {
     totalMilesDriven: number;
     accidentsFree: number;
   };
-  currentAssignment: {
+  current_assignment: {
     truckNumber: string;
     route: string;
     status: 'available' | 'on-route' | 'loading' | 'maintenance' | 'off-duty';

@@ -31,7 +31,7 @@ export const emptyDriver: Omit<Driver, "id"> = {
     totalMilesDriven: 0,
     accidentsFree: 0,
   },
-  currentAssignment: {
+  current_assignment: {
     truckNumber: "",
     route: "",
     status: "available",
