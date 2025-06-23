@@ -1,11 +1,12 @@
 import type { Driver } from "@/types";
 
+
 export const emptyDriver: Omit<Driver, "id"> = {
-  firstName: "",
-  lastName: "",
-  photo: "",
+  first_name: "",
+  last_name: "",
+  is_active: true,
   email: "",
-  phone: "",
+  phone_number: "",
   address: {
     street: "",
     city: "",
@@ -14,9 +15,8 @@ export const emptyDriver: Omit<Driver, "id"> = {
   },
   license: {
     number: "",
-    class: "",
     expirationDate: "",
-    endorsements: [],
+    class: "",
     isValid: false,
   },
   employment: {
@@ -37,15 +37,12 @@ export const emptyDriver: Omit<Driver, "id"> = {
     status: "available",
   },
   certifications: {
-    dotMedicalCert: {
-      expirationDate: "",
-      isValid: false,
-    },
+   
     hazmatEndorsement: false,
     drugTestDate: "",
   },
   emergencyContact: {
-    name: "",
+    contact_name: "",
     relationship: "",
     phone: "",
   },

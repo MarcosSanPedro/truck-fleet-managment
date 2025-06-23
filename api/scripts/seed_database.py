@@ -12,13 +12,11 @@ Base = declarative_base()
 # Driver model based on Pydantic DriverOut/DriverBase
 class DriverModel(Base):
     __tablename__ = "drivers"
-    id = Column(Integer, primary_key=True, index=True)  # Changed from String to Integer
+    id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     phone_number = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False, index=True)
-    license_number = Column(String, nullable=False)
-    license_expiration = Column(String, nullable=False)  # Stored as ISO date string
     is_active = Column(Integer, nullable=False)  # SQLite doesn't have boolean; use Integer (0/1)
     address = Column(JSON, nullable=False)
     license = Column(JSON, nullable=False)
@@ -32,7 +30,7 @@ class DriverModel(Base):
 class Truck(Base):
     __tablename__ = "trucks"
     id = Column(Integer, primary_key=True, index=True)
-    assign_driver = Column(Integer, nullable=False)  # Changed to Integer to match drivers.id
+    assign_driver = Column(String, nullable=False)  # String as per previous request
     make = Column(String, nullable=False)
     model = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
@@ -86,8 +84,6 @@ def generate_driver(id, truck_plates):
     last_name = faker.last_name()
     email = f"{first_name.lower()}.{last_name.lower()}@example.com"
     phone_number = faker.phone_number()[:12]  # Limit length to avoid issues
-    license_number = faker.bothify(text="D#######")
-    license_expiration = faker.date_between(start_date="today", end_date="+5y").isoformat()
     is_active = random.choice([1, 0])
     address = {
         "street": faker.street_address(),
@@ -96,9 +92,9 @@ def generate_driver(id, truck_plates):
         "zip_code": faker.zipcode()
     }
     license = {
-        "number": license_number,
+        "number": faker.bothify(text="D#######"),
+        "license_expiration": faker.date_between(start_date="today", end_date="+5y").isoformat(),
         "license_class": random.choice(["A", "B", "C"]),
-        "endorsements": random.sample(["H", "N", "T", "P"], k=random.randint(0, 3)),
         "is_valid": random.choice([True, False])
     }
     employment = {
@@ -118,17 +114,12 @@ def generate_driver(id, truck_plates):
         "route": faker.city() + " to " + faker.city(),
         "status": random.choice(["available", "on-route", "loading", "maintenance", "off-duty"])
     }
-    dot_medical_cert = {
-        "expiration_date": faker.date_between(start_date="today", end_date="+2y").isoformat(),
-        "is_valid": random.choice([True, False])
-    }
     certifications = {
-        "dot_medical_cert": dot_medical_cert,
         "hazmat_endorsement": random.choice([True, False]),
         "drug_test_date": faker.date_between(start_date="-1y", end_date="today").isoformat()
     }
     emergency_contact = {
-        "name": faker.name(),
+        "emergency_contact": faker.name(),
         "relationship": random.choice(["Spouse", "Parent", "Sibling", "Friend"]),
         "phone": faker.phone_number()[:12]
     }
@@ -138,8 +129,6 @@ def generate_driver(id, truck_plates):
         last_name=last_name,
         phone_number=phone_number,
         email=email,
-        license_number=license_number,
-        license_expiration=license_expiration,
         is_active=is_active,
         address=address,
         license=license,
@@ -159,7 +148,7 @@ def generate_truck(id, driver_ids):
     mileage = random.randint(50000, 200000)
     vin = faker.vin()
     plate = faker.bothify(text="??###")
-    assign_driver = random.choice(driver_ids)
+    assign_driver = str(random.choice(driver_ids))  # Convert driver ID to string
     return Truck(
         id=id,
         assign_driver=assign_driver,

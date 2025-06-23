@@ -9,8 +9,8 @@ class AddressBase(BaseModel):
 
 class LicenseBase(BaseModel):
     number: str
+    license_expiration: FutureDate
     license_class: str
-    endorsements: List[str]
     is_valid: bool
 
 class EmploymentBase(BaseModel):
@@ -30,17 +30,12 @@ class CurrentAssignmentBase(BaseModel):
     route: str
     status: Literal['available', 'on-route', 'loading', 'maintenance', 'off-duty']
 
-class DotMedicalCertBase(BaseModel):
-    expiration_date: str
-    is_valid: bool
-
 class CertificationsBase(BaseModel):
-    dot_medical_cert: DotMedicalCertBase
     hazmat_endorsement: bool
     drug_test_date: str
 
 class EmergencyContactBase(BaseModel):
-    name: str
+    emergency_contact: str
     relationship: str
     phone: str
 
@@ -50,8 +45,6 @@ class DriverBase(BaseModel):
     last_name: str
     phone_number: str
     email: str
-    license_number: str
-    license_expiration: FutureDate
     is_active: bool
     address: AddressBase
     license: LicenseBase

@@ -1,10 +1,10 @@
 export interface Driver {
   id: number;
-  firstName: string;
-  lastName: string;
-  photo: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
   email: string;
-  phone: string;
+  phone_number: string;
   address: {
     street: string;
     city: string;
@@ -15,7 +15,6 @@ export interface Driver {
     number: string;
     class: string;
     expirationDate: string;
-    endorsements: string[];
     isValid: boolean;
   };
   employment: {
@@ -36,15 +35,11 @@ export interface Driver {
     status: 'available' | 'on-route' | 'loading' | 'maintenance' | 'off-duty';
   };
   certifications: {
-    dotMedicalCert: {
-      expirationDate: string;
-      isValid: boolean;
-    };
     hazmatEndorsement: boolean;
     drugTestDate: string;
   };
   emergencyContact: {
-    name: string;
+    contact_name: string;
     relationship: string;
     phone: string;
   };

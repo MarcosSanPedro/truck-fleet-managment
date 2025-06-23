@@ -55,22 +55,7 @@ export const DriverForm: React.FC<DriverFormProps> = ({
       };
     });
   };
-  // Define string fields with explicit type
-  // type StringField = keyof Pick<
-  //   Omit<Driver, "id">,
-  //   "firstName" | "lastName" | "email" | "phone" | "photo"
-  // >;
-
-  const nonNested = Object.fromEntries(
-    Object.entries(formData).filter(
-      ([key, value]) => typeof value === "string" || typeof value === "number"
-    )
-  ) as Partial<typeof formData>;
-
-  const nestedFields = Object.fromEntries(
-    Object.entries(formData).filter(([key, value]) => typeof value === "object")
-  ) as Partial<typeof formData>;
-
+  
   // Helper function to format field names for labels
   const formatLabel = (key: string) => {
     return key

@@ -44,12 +44,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
     return expirationDate <= thirtyDaysFromNow;
   };
 
-  const isDotMedicalExpiringSoon = () => {
-    const expirationDate = new Date(driverInfo.certifications.dotMedicalCert.expirationDate);
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    return expirationDate <= thirtyDaysFromNow;
-  };
+  
 
   const handleDelete = () => {
     onDelete(driverInfo.id);
@@ -67,7 +62,9 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
+
       <div className="bg-white shadow-sm border-b border-gray-200">
+        
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
@@ -83,6 +80,8 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                 )}
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Driver Profile</h1>
+                   <h1 className='text-6xl'>Hello</h1>
+
                   <p className="mt-1 text-sm text-gray-500">
                     Detailed information and management options
                   </p>
@@ -117,7 +116,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
               <div className="relative">
                 <img
                   src={driverInfo.photo}
-                  alt={`${driverInfo.firstName} ${driverInfo.lastName}`}
+                  alt={`${driverInfo.first_name} ${driverInfo.last_name}`}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                 />
                 <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-3 border-white shadow-md ${
@@ -130,7 +129,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      {driverInfo.firstName} {driverInfo.lastName}
+                      {driverInfo.first_name} {driverInfo.last_name}
                     </h2>
                     <div className="flex items-center mt-2 space-x-4">
                       <div className="flex items-center text-sm text-gray-500">
@@ -259,35 +258,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
                   )}
                 </div>
 
-                {/* DOT Medical Certificate */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-900">DOT Medical Certificate</h4>
-                    <div className="flex items-center space-x-2">
-                      {driverInfo.certifications.dotMedicalCert.isValid ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
-                      )}
-                      <span className={`text-sm font-medium ${
-                        driverInfo.certifications.dotMedicalCert.isValid ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {driverInfo.certifications.dotMedicalCert.isValid ? 'Valid' : 'Invalid'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-gray-500">Expires:</span>
-                    <div className={`font-medium ${isDotMedicalExpiringSoon() ? 'text-amber-600' : ''}`}>
-                      {formatDate(driverInfo.certifications.dotMedicalCert.expirationDate)}
-                      {isDotMedicalExpiringSoon() && (
-                        <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                          Expiring Soon
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+             
 
                 {/* Additional Certifications */}
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -431,7 +402,7 @@ export const DriverProfile: React.FC<DriverProfileProps> = ({
               <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{driverInfo.firstName} {driverInfo.lastName}</strong>? 
+              Are you sure you want to delete <strong>{driverInfo.first_name} {driverInfo.last_name}</strong>? 
               This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">

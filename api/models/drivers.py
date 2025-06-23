@@ -9,8 +9,6 @@ class Driver(Base):
     last_name = Column(String, nullable=False)
     phone_number = Column(String, nullable=False)
     email= Column(String, nullable=False)
-    license_number = Column(String, nullable=False)
-    license_expiration = Column(DateTime, nullable=False)
     is_active = Column( Boolean, nullable=False)
     address = Column(JSON, nullable=False)
     license = Column(JSON, nullable=False)
