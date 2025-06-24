@@ -1,21 +1,34 @@
 import React from 'react';
-import { Truck, AlertTriangle, Wifi, Shield, RefreshCw, Home, ArrowLeft } from 'lucide-react';
-
-interface ExtendedError extends Error {
-  status?: number;
-  code?: string;
-}
+import { Truck, AlertTriangle, Wifi, Shield, RefreshCw, Home, ArrowLeft, Search, MapPin } from 'lucide-react';
 
 interface LogisticsErrorPageProps {
-  error?: ExtendedError;
+  error: {
+    status?: number
+    message?: string
+    name?: string
+  };
 }
 
-const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Error('Unknown error occurred') }) => {
+const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = {status: 404, message: "not foud"} }) => {
   // Error type detection and configuration
-  const getErrorConfig = (error: ExtendedError) => {
+  const getErrorConfig = (error: LogisticsErrorPageProps['error']) => {
     const errorMessage = error.message?.toLowerCase() || '';
     const errorName = error.name?.toLowerCase() || '';
     const errorStatus = error.status;
+    
+    // 404 Not Found errors
+    if (errorStatus === 404 || errorMessage.includes('not found') || errorMessage.includes('404')) {
+      return {
+        type: 'notfound',
+        icon: Search,
+        title: 'Route Not Found',
+        subtitle: 'The requested page or resource could not be located',
+        description: 'The truck route, shipment, or page you\'re looking for doesn\'t exist or may have been moved. Please check the URL or navigate back to the dashboard.',
+        color: 'bg-indigo-500',
+        bgGradient: 'from-indigo-50 to-blue-50',
+        iconColor: 'text-indigo-500'
+      };
+    }
     
     // Network errors
     if (errorMessage.includes('network') || errorMessage.includes('fetch') || 
@@ -47,7 +60,7 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
       };
     }
     
-    // Server errors
+    // Server errors (5xx)
     if (errorStatus >= 500 || errorMessage.includes('server') || errorMessage.includes('internal')) {
       return {
         type: 'server',
@@ -61,7 +74,7 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
       };
     }
     
-    // Rate limiting
+    // Rate limiting (429)
     if (errorStatus === 429 || errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
       return {
         type: 'ratelimit',
@@ -72,6 +85,20 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
         color: 'bg-purple-500',
         bgGradient: 'from-purple-50 to-indigo-50',
         iconColor: 'text-purple-500'
+      };
+    }
+    
+    // Bad Request (400)
+    if (errorStatus === 400 || errorMessage.includes('bad request')) {
+      return {
+        type: 'badrequest',
+        icon: AlertTriangle,
+        title: 'Invalid Request',
+        subtitle: 'The request contains invalid data',
+        description: 'There was an issue with the request format or parameters. Please check your input and try again.',
+        color: 'bg-yellow-500',
+        bgGradient: 'from-yellow-50 to-amber-50',
+        iconColor: 'text-yellow-500'
       };
     }
     
@@ -102,6 +129,9 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
   const handleGoBack = () => {
     window.history.back();
   };
+
+  // Special handling for 404 - different button layout
+  const is404 = config.type === 'notfound';
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${config.bgGradient} flex items-center justify-center p-4`}>
@@ -146,9 +176,10 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
                 <details className="cursor-pointer">
                   <summary className="font-semibold text-gray-700 mb-2">Technical Details</summary>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Error:</strong> {error.message}</p>
-                    <p><strong>Type:</strong> {error.name || 'Unknown'}</p>
-                    {error.status && <p><strong>Status:</strong> {error.status}</p>}
+                    <p><strong>Status:</strong> {error.status || 'Unknown'}</p>
+                    <p><strong>Message:</strong> {error.message || 'No message'}</p>
+                    <p><strong>Name:</strong> {error.name || 'Unknown'}</p>
+                    <p><strong>Detected Type:</strong> {config.type}</p>
                     {error.code && <p><strong>Code:</strong> {error.code}</p>}
                     {error.stack && (
                       <div>
@@ -165,23 +196,45 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = new Err
 
             {/* Action buttons */}
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={handleRetry}
-                  className={`inline-flex items-center justify-center px-6 py-3 ${config.color} text-white rounded-xl font-semibold hover:opacity-90 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl`}
-                >
-                  <RefreshCw className="h-5 w-5 mr-2" />
-                  Try Again
-                </button>
-                
-                <button
-                  onClick={handleGoHome}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
-                >
-                  <Home className="h-5 w-5 mr-2" />
-                  Dashboard
-                </button>
-              </div>
+              {is404 ? (
+                // For 404 errors, don't show "Try Again" - show navigation options instead
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={handleGoHome}
+                    className={`inline-flex items-center justify-center px-6 py-3 ${config.color} text-white rounded-xl font-semibold hover:opacity-90 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl`}
+                  >
+                    <Home className="h-5 w-5 mr-2" />
+                    Go to Dashboard
+                  </button>
+                  
+                  <button
+                    onClick={() => window.location.href = '/fleet'}
+                    className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
+                  >
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Fleet Overview
+                  </button>
+                </div>
+              ) : (
+                // For other errors, show the retry option
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={handleRetry}
+                    className={`inline-flex items-center justify-center px-6 py-3 ${config.color} text-white rounded-xl font-semibold hover:opacity-90 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl`}
+                  >
+                    <RefreshCw className="h-5 w-5 mr-2" />
+                    Try Again
+                  </button>
+                  
+                  <button
+                    onClick={handleGoHome}
+                    className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
+                  >
+                    <Home className="h-5 w-5 mr-2" />
+                    Dashboard
+                  </button>
+                </div>
+              )}
               
               <div className="text-center">
                 <button
