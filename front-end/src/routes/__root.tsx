@@ -1,3 +1,4 @@
+import LogisticsErrorPage from "../components/ui/LogisticsErrorPage";
 import { Layout } from "../components/layout";
 import '../styles/globals.css'
 
@@ -10,6 +11,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 export const Route = createRootRoute({
   component: RootLayout,
+  errorComponent: (error)=> <LogisticsErrorPage error={error} />
 });
 
 export default function RootLayout() {

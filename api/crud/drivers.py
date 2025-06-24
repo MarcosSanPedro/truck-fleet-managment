@@ -8,11 +8,14 @@ def get_drivers(db: Session):
 
 # GET one truck by ID
 def get_driver(db: Session, driver_id: int):
-    return db.query(Driver).filter(Driver.id == driver_id).first()
+    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    if not driver:
+        raise ValueError("Driver not found")
+    return driver
 
 # POST: Create new truck
 def create_driver(db: Session, driver: DriverCreate):
-    print('test')
+    print('testsssssssssssssssssssssssssssssssssssssssssssssssssssss')
     db_driver = Driver(**driver.model_dump())
     print('test')
     db.add(db_driver)

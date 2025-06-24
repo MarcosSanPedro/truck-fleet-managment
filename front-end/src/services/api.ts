@@ -38,13 +38,24 @@ class ApiService {
 
     if (!response.ok) {
       let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      let backendDetail = "";
+      let code = undefined;
       try {
         const errorData = await response.json();
-        errorMessage += ` - ${JSON.stringify(errorData)}`;
+        if (errorData.detail) {
+          backendDetail = errorData.detail;
+          errorMessage = errorData.detail;
+        }
+        if (errorData.code) {
+          code = errorData.code;
+        }
       } catch {
         // Ignore if response is not JSON
       }
-      throw new Error(errorMessage);
+      const error: any = new Error(errorMessage);
+      error.status = response.status;
+      if (code) error.code = code;
+      throw error;
     }
 
     return response.json();

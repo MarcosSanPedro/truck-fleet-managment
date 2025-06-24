@@ -101,6 +101,7 @@ export default function Drivers(){
    * Maneja la creación de un nuevo conductor
    */
   const handleCreate = useCallback((): void => {
+
     setEditingDriver(undefined);
     setIsModalOpen(true);
     setError(null);
@@ -111,6 +112,7 @@ export default function Drivers(){
    * @param {Driver} driver - El conductor a editar
    */
   const handleEdit = useCallback((driver: Driver): void => {
+    console.log(driver)
     setEditingDriver(driver);
     setIsModalOpen(true);
     setError(null);

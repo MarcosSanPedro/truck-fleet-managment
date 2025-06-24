@@ -4,6 +4,7 @@ import {
   Navigate,
   useNavigate,
   useRouter,
+  type NotFoundError,
 } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import {
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/drivers/$driverId")({
     } catch (error) {
       throw new Error(`Failed to load driver: ${error}`);
     }
-  },
+  },  
 });
 
 function DriversDetails() {

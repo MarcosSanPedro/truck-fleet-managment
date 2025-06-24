@@ -12,14 +12,18 @@ driver_router = APIRouter()
 
 @driver_router.get("/", response_model=List[DriverOut])
 async def read_driver(db: Session = Depends(get_db)):
-    print("Fetching all drivers...")
-    return crud_drivers.get_drivers(db)
+    try:
+        drivers = crud_drivers.get_drivers(db)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return drivers
 
 @driver_router.get("/{driver_id}", response_model=DriverOut)
 def read_driver(driver_id: str, db: Session = Depends(get_db)):
-    driver = crud_drivers.get_driver(db, driver_id)
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
+    try:
+        driver = crud_drivers.get_driver(db, driver_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     return driver
 
 @driver_router.post("/", response_model=DriverOut)
