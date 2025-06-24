@@ -3,7 +3,6 @@ import '../styles/globals.css'
 
 import {
   createRootRoute,
-  Link,
   Outlet,
   useRouter,
 } from "@tanstack/react-router";

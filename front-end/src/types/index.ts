@@ -14,31 +14,31 @@ export interface Driver {
   license: {
     number: string;
     class: string;
-    expirationDate: string;
+    expiration_date: string;
     isValid: boolean;
   };
   employment: {
-    hireDate: string;
-    yearsExperience: number;
+    hire_date: string;
+    years_experience: number;
     status: 'active' | 'inactive' | 'on-leave' | 'suspended';
-    employeeId: string;
+    employee_id: string;
   };
   performance: {
-    safetyRating: number;
-    onTimeDeliveryRate: number;
-    totalMilesDriven: number;
-    accidentsFree: number;
+    safety_rating: number;
+    on_time_delivery_rate: number;
+    total_miles_driven: number;
+    accidents_free: number;
   };
   current_assignment: {
-    truckNumber: string;
+    truck_number: string;
     route: string;
     status: 'available' | 'on-route' | 'loading' | 'maintenance' | 'off-duty';
   };
   certifications: {
-    hazmatEndorsement: boolean;
-    drugTestDate: string;
+    hazmat_endorsement: boolean;
+    drug_test_date: string;
   };
-  emergencyContact: {
+  emergency_contact: {
     contact_name: string;
     relationship: string;
     phone: string;

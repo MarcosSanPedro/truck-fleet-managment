@@ -15,13 +15,13 @@ export const emptyDriver: Omit<Driver, "id"> = {
   },
   license: {
     number: "",
-    expirationDate: "",
+    expiration_date: "",
     class: "",
     isValid: false,
   },
   employment: {
     hireDate: "",
-    yearsExperience: 0,
+    years_experience: 0,
     status: "active",
     employeeId: "",
   },
@@ -29,7 +29,7 @@ export const emptyDriver: Omit<Driver, "id"> = {
     safetyRating: 0,
     onTimeDeliveryRate: 0,
     totalMilesDriven: 0,
-    accidentsFree: 0,
+    accidents_free: 0,
   },
   current_assignment: {
     truckNumber: "",

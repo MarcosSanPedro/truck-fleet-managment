@@ -153,7 +153,6 @@ export default function Drivers(){
   const handleSubmit = useCallback(async (driverData: Omit<Driver, "id">): Promise<void> => {
     setIsLoading(true);
     setError(null);
-
     try {
       if (editingDriver && editingDriver.id) {
         // Actualizar conductor existente
