@@ -33,6 +33,7 @@ def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
 @driver_router.put("/{driver_id}", response_model=DriverOut)
 def update_driver(driver_id: str, driver: DriverUpdate, db: Session = Depends(get_db)):
     updated = crud_drivers.update_driver(db, driver_id, driver)
+    print('testsssssssssssssssssssssssssssssssssssssssssssssssssssss')
     if not updated:
         raise HTTPException(status_code=404, detail="Driver not found")
     return updated

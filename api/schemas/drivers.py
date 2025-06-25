@@ -9,7 +9,7 @@ class AddressBase(BaseModel):
 
 class LicenseBase(BaseModel):
     number: str
-    license_expiration: FutureDate
+    license_expiration: str
     license_class: str
     is_valid: bool
 

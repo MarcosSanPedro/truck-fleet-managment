@@ -20,28 +20,28 @@ export const emptyDriver: Omit<Driver, "id"> = {
     isValid: false,
   },
   employment: {
-    hireDate: "",
+    hire_date: "",
     years_experience: 0,
     status: "active",
-    employeeId: "",
+    employee_id: "",
   },
   performance: {
-    safetyRating: 0,
-    onTimeDeliveryRate: 0,
-    totalMilesDriven: 0,
+    safety_rating: 0,
+    on_time_delivery_rate: 0,
+    total_miles_driven: 0,
     accidents_free: 0,
   },
   current_assignment: {
-    truckNumber: "",
+    truck_number: "",
     route: "",
     status: "available",
   },
   certifications: {
    
-    hazmatEndorsement: false,
-    drugTestDate: "",
+    hazmat_endorsement: false,
+    drug_test_date: "",
   },
-  emergencyContact: {
+  emergency_contact: {
     contact_name: "",
     relationship: "",
     phone: "",

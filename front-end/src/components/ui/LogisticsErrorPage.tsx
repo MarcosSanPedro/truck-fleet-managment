@@ -1,5 +1,6 @@
 import React from 'react';
 import { Truck, AlertTriangle, Wifi, Shield, RefreshCw, Home, ArrowLeft, Search, MapPin } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 interface LogisticsErrorPageProps {
   error: {
@@ -59,9 +60,9 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = {status
         iconColor: 'text-orange-500'
       };
     }
-    
+
     // Server errors (5xx)
-    if (errorStatus >= 500 || errorMessage.includes('server') || errorMessage.includes('internal')) {
+    if ((typeof errorStatus === 'number' && errorStatus >= 500) || errorMessage.includes('server') || errorMessage.includes('internal')) {
       return {
         type: 'server',
         icon: AlertTriangle,
@@ -118,17 +119,6 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = {status
   const config = getErrorConfig(error);
   const IconComponent = config.icon;
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
-  const handleGoHome = () => {
-    window.location.href = '/dashboard';
-  };
-
-  const handleGoBack = () => {
-    window.history.back();
-  };
 
   // Special handling for 404 - different button layout
   const is404 = config.type === 'notfound';
@@ -170,80 +160,60 @@ const LogisticsErrorPage: React.FC<LogisticsErrorPageProps> = ({ error = {status
               <p className="text-gray-500 leading-relaxed max-w-md mx-auto">{config.description}</p>
             </div>
 
-            {/* Error details (for development) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-8 p-4 bg-gray-100 rounded-lg">
-                <details className="cursor-pointer">
-                  <summary className="font-semibold text-gray-700 mb-2">Technical Details</summary>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Status:</strong> {error.status || 'Unknown'}</p>
-                    <p><strong>Message:</strong> {error.message || 'No message'}</p>
-                    <p><strong>Name:</strong> {error.name || 'Unknown'}</p>
-                    <p><strong>Detected Type:</strong> {config.type}</p>
-                    {error.code && <p><strong>Code:</strong> {error.code}</p>}
-                    {error.stack && (
-                      <div>
-                        <strong>Stack:</strong>
-                        <pre className="mt-1 text-xs bg-white p-2 rounded border overflow-auto max-h-32">
-                          {error.stack}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              </div>
-            )}
-
             {/* Action buttons */}
             <div className="space-y-4">
               {is404 ? (
                 // For 404 errors, don't show "Try Again" - show navigation options instead
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to='/'>
                   <button
-                    onClick={handleGoHome}
                     className={`inline-flex items-center justify-center px-6 py-3 ${config.color} text-white rounded-xl font-semibold hover:opacity-90 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl`}
                   >
                     <Home className="h-5 w-5 mr-2" />
                     Go to Dashboard
                   </button>
-                  
+                  </Link>
+                  <Link to='/Drivers'>
                   <button
-                    onClick={() => window.location.href = '/fleet'}
                     className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
                   >
                     <MapPin className="h-5 w-5 mr-2" />
                     Fleet Overview
                   </button>
+                  </Link>
                 </div>
               ) : (
                 // For other errors, show the retry option
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to='/'>
                   <button
-                    onClick={handleRetry}
                     className={`inline-flex items-center justify-center px-6 py-3 ${config.color} text-white rounded-xl font-semibold hover:opacity-90 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl`}
                   >
+
                     <RefreshCw className="h-5 w-5 mr-2" />
                     Try Again
                   </button>
-                  
+                  </Link>
+                  <Link to='/'>
                   <button
-                    onClick={handleGoHome}
                     className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border border-gray-200"
                   >
                     <Home className="h-5 w-5 mr-2" />
                     Dashboard
                   </button>
+                  </Link>
                 </div>
               )}
               
               <div className="text-center">
+                  <Link to='/Drivers'>
                 <button
-                  onClick={handleGoBack}
                   className="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                >
+                  >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Go Back
                 </button>
+                  </Link>
               </div>
             </div>
           </div>
