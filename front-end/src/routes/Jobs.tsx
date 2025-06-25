@@ -29,33 +29,6 @@ export default function Jobs() {
       setJobs(data);
     } catch (error) {
       console.error('Error loading jobs:', error);
-      // For demo purposes, use mock data
-      setJobs([
-        {
-          id: 1,
-          job_number: 'JOB-001',
-          job_date: '2024-01-15',
-          job_type: 'delivery',
-          job_description: 'Deliver construction materials to downtown site',
-          job_status: 'completed',
-        },
-        {
-          id: 2,
-          job_number: 'JOB-002',
-          job_date: '2024-01-16',
-          job_type: 'pickup',
-          job_description: 'Pick up equipment from warehouse',
-          job_status: 'in_progress',
-        },
-        {
-          id: 3,
-          job_number: 'JOB-003',
-          job_date: '2024-01-17',
-          job_type: 'transport',
-          job_description: 'Transport goods to distribution center',
-          job_status: 'pending',
-        },
-      ]);
     } finally {
       setLoading(false);
     }

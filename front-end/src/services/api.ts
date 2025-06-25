@@ -77,7 +77,6 @@ class ApiService {
     return this.request<T>(`${endpoint}/${id}`);
   }
 
-  
 
   /**
    * Creates a new entity at the specified endpoint.
