@@ -64,4 +64,4 @@ class DriverUpdate(DriverBase):
 class DriverOut(DriverBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True

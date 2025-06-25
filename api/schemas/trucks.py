@@ -18,4 +18,4 @@ class TruckUpdate(TruckBase):
 class TruckOut(TruckBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
