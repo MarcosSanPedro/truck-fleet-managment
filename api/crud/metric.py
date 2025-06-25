@@ -38,23 +38,31 @@ def update_metric(db: Session, metric_entity: str, metric_name: str, metric_upda
         metric_type = "count"
 
         if metric_entity == "fleet" and metric_name == "fleet_safety_rating":
-            new_value = db.query(func.avg(Driver.performance['fleet_safety_rating'])).scalar()
+            new_value = db.query(func.avg(func.json_extract(Driver.performance, '$.fleet_safety_rating'))).scalar()
             metric_type = "average"
         elif metric_entity == "drivers" and metric_name == "active_drivers":
-            new_value = db.query(Driver.is_active).filter(Driver.is_active == True).count()
+            new_value = db.query(Driver).filter(Driver.is_active == True).count()
             metric_type = "count"
         elif metric_entity == "drivers" and metric_name == "drivers_on_route":
-            new_value = db.query(Driver.current_assignment['status']).filter(Driver.current_assignment['status'] == 'on_route').count()
+            new_value = db.query(Driver).filter(func.json_extract(Driver.current_assignment, '$.status') == 'on_route').count()
             metric_type = "count"
         elif metric_entity == "drivers" and metric_name == "new_drivers_average_rating":
-            # Example: Assume Driver has a created_at column for "new" drivers
-            new_value = db.query(func.avg(Driver.performance['fleet_safety_rating'])).filter(Driver.created_at >= func.now() - func.interval('30 days')).scalar()
+            new_value = db.query(func.avg(func.json_extract(Driver.performance, '$.fleet_safety_rating'))).scalar()
             metric_type = "average"
+        elif metric_entity == "drivers":
+            new_value = db.query(Driver).count()
+            metric_type = "count"
+        elif metric_entity == "trucks":
+            new_value = db.query(Truck).count()
+            metric_type = "count"
+        elif metric_entity == "jobs":
+            new_value = db.query(Job).count()
+            metric_type = "count"
+        elif metric_entity == "maintenances":
+            new_value = db.query(Maintenance).count()
+            metric_type = "count"
         else:
-            table = Base.metadata.tables.get(metric_entity)
-            if table is None:
-                raise ValueError(f"Table {metric_entity} not found")
-            new_value = db.query(table).count()
+            raise ValueError(f"Unknown metric entity: {metric_entity}")
 
         if record is None:
             new_metric = MetricCreate(

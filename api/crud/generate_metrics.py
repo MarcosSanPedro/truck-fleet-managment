@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from db.session import get_db
+from db.session import get_db, SessionLocal
 from crud.metric import update_metric, get_all_metrics
 from schemas.metric import MetricOut
 
@@ -25,24 +25,26 @@ async def generate_metrics(db: Session) -> list[MetricOut]:
     
     for entity, name in metrics_to_update:
         try:
-            await update_metric_async(db, metric_entity=entity, metric_name=name)
+            update_metric(db, metric_entity=entity, metric_name=name)
             logger.info(f"Updated metric: {name}")
         except Exception as e:
             logger.error(f"Failed to update metric {name}: {e}")
     
     return get_all_metrics(db)
 
-async def update_metric_async(db: Session, metric_entity: str, metric_name: str):
-    return update_metric(db, metric_entity, metric_name)
-
-def start_metrics_scheduler(db: Session = Depends(get_db)):
+def start_metrics_scheduler():
     scheduler = AsyncIOScheduler()
+    
     async def run_metrics_with_session():
+        # Create a new database session for each job execution
+        db = SessionLocal()
         try:
             await generate_metrics(db)
-            print("metrics is running")
+            logger.info("Metrics update completed successfully")
         except Exception as e:
             logger.error(f"Scheduled metrics update failed: {e}")
+        finally:
+            db.close()
     
     scheduler.add_job(
         run_metrics_with_session,
