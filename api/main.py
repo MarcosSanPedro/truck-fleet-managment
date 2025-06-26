@@ -7,7 +7,7 @@ from db.session import engine, SessionLocal, get_db
 from models.base import Base
 from endpoints.drivers import driver_router
 from endpoints.jobs import job_router
-from endpoints.metric import metric_router
+from endpoints.metric import router
 from endpoints.trucks import truck_router
 from endpoints.maintanence import maintenance_router
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"Metrics scheduler stopped at {time.ctime()}")
 
 # Crear instancia de la app
-app = FastAPI(title="Truck Fleet Management API", lifespan=lifespan)
+app = FastAPI(title="Truck Fleet Management API") #  lifespan=lifespan
 
 # Configure CORS
 origins = ["*"]
@@ -59,4 +59,4 @@ app.include_router(truck_router, prefix="/trucks", tags=["Trucks"])
 app.include_router(driver_router, prefix="/drivers", tags=["Driver"])
 app.include_router(job_router, prefix="/jobs", tags=["Jobs"])
 app.include_router(maintenance_router, prefix="/maintenance", tags=["Maintenance"])
-app.include_router(metric_router, prefix="/metrics", tags=["Metrics"])
+app.include_router(router, prefix="/metrics", tags=["Metrics"])

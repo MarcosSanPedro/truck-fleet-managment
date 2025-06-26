@@ -48,7 +48,7 @@ def start_metrics_scheduler():
     
     scheduler.add_job(
         run_metrics_with_session,
-        trigger=IntervalTrigger(seconds=2),
+        trigger=IntervalTrigger(minutes=1),
         id='metrics_update_job',
         name='Update metrics every 5 minutes',
         replace_existing=True,
