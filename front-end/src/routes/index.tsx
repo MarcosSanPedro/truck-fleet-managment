@@ -1,5 +1,5 @@
 import { apiService } from '../services/api';
-import type { Driver, Job, Maintenance, Truck } from '@/types';
+import type { Driver, Job, Maintenance, Truck, Metric } from '../types/index';
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react';
 
@@ -9,30 +9,13 @@ export const Route = createFileRoute('/')({
 })
 
 export default function Dashboard () {
-  const [driversInfo , setDriversInfo] = useState<Driver[]>([])
-  const [jobsInfo , setJobsInfo] = useState<Job[]>([])
-  const [trucksInfo , setDriverTrucksInfo] = useState<Truck[]>([])
-  const [maintenanceInfo , setMaintenanceInfo] = useState<Maintenance[]>([])
-  const [loading, setLoading] = useState(true)
+
+  const test = apiService.get<Metric>('/metrics')
+  console.log(test)
+ 
 
 
-  useEffect(()=>{
-    loadInfo()
-  },[])
   
-
-  const loadInfo = async ()=>{
-    try{
-    setLoading(true);
-    const driverData = await apiService.get<Driver>('/drivers')
-    setDriversInfo(driverData)
-  } catch(err){
-    console.log('drivers are playing Minecraft rn, we could not fetch them', err)
-  }
-  finally{
-    setLoading(false)
-  }
-  }
 
  
 

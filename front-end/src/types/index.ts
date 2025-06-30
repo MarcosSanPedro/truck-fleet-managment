@@ -75,5 +75,13 @@ export interface Driver {
     date: Date;
     next_scheduled: Date
   }
+
+  export interface Metric {
+    entity: string;
+    name: string;
+    type: string;
+    value: number;
+    calculation_config: string
+  }
   
-  export type EntityType = 'drivers' | 'jobs' | 'trucks' | 'maintenance';
+  export type EntityType = 'drivers' | 'jobs' | 'trucks' | 'maintenance' | 'metric';

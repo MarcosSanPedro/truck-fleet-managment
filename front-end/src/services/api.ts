@@ -141,32 +141,7 @@ class ApiService {
   }
 }
 
-// Maintenance endpoints
 
 
 export const apiService = new ApiService(API_BASE_URL);
 
-
-
-
-// const pepe = await apiService.createDriver({
-//   first_name: "marcos",
-//   email: "marcos",
-//   is_active: true,
-//   license_number:"marcos",
-//   last_name:"marcos",
-//   license_expiration: "021/123/2123",
-//   phone_number: "2313124"
-// })
-
-// const pepe = await apiService.post<Job>("jobs", {
-
-// })
-
-// const pepe = await apiService.put<Job>("jobs",{
-  
-  
-  
-// })
-
-// const pepito = await apiService.delete("jobs",12)
