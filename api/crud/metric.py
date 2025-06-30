@@ -202,6 +202,7 @@ class MetricCalculator:
         return (numerator / denominator) * 100.0
     
     def _calculate_custom(self, entity_model, config: Dict) -> Union[float, int]:
+
         """Execute custom SQL query"""
         custom_query = config.get('query')
         if not custom_query:
@@ -209,6 +210,7 @@ class MetricCalculator:
         
         result = self.db.execute(text(custom_query)).scalar()
         return float(result) if result is not None else 0.0
+
 
 
 def add_metric(db: Session, metric: MetricCreate) -> Metric:
@@ -226,6 +228,73 @@ def add_metric(db: Session, metric: MetricCreate) -> Metric:
     except Exception as err:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to add metric: {err}")
+    
+
+
+def calculate_driver_metrics_by_property(
+    db: Session,
+    property_name: str,
+    property_value: Any,
+    metric_type: str,
+    metric_name: str,
+    calculation_config: Dict = None
+) -> List[Metric]:
+    """
+    Calculate metrics for drivers filtered by a specific property (e.g., is_active=True).
+    
+    Args:
+        db: SQLAlchemy database session
+        property_name: The driver property to filter on (e.g., "is_active")
+        property_value: The value to filter for (e.g., True)
+        metric_type: The type of metric to calculate (e.g., "count", "sum", "avg")
+        metric_name: The name of the metric (e.g., "active_drivers_count")
+        calculation_config: Optional configuration for the metric calculation (e.g., field for sum/avg)
+    
+    Returns:
+        List of updated Metric objects
+    """
+    try:
+        # Default calculation config if not provided
+        if calculation_config is None:
+            calculation_config = {}
+        
+        # Add property filter to calculation_config
+        filters = calculation_config.get("filters", [])
+        filters.append({
+            "field": property_name,
+            "operator": "==",
+            "value": property_value
+        })
+        calculation_config["filters"] = filters
+
+        # Check if metric exists, create if not
+        existing_metric = db.query(Metric).filter(Metric.name == metric_name).first()
+        if not existing_metric:
+            metric_data = {
+                "name": metric_name,
+                "entity": "drivers",
+                "type": metric_type,
+                "calculation_config": json.dumps(calculation_config)
+            }
+            existing_metric = Metric(**metric_data)
+            db.add(existing_metric)
+            db.commit()
+            db.refresh(existing_metric)
+
+        # Calculate the metric using MetricCalculator
+        calculator = MetricCalculator(db)
+        new_value = calculator.calculate_metric(existing_metric)
+
+        # Update the metric value
+        existing_metric.value = new_value
+        db.commit()
+        db.refresh(existing_metric)
+
+        return [existing_metric]
+
+    except Exception as err:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to calculate driver metrics: {str(err)}")
 
 
 def get_metric(db: Session, metric_id: Optional[int] = None, metric_name: Optional[str] = None) -> Metric:
@@ -271,7 +340,7 @@ def update_metric(
     metric_id: Optional[int] = None, 
     metric_name: Optional[str] = None,
     metric_update: Optional[MetricUpdate] = None,
-    recalculate: bool = True
+    recalculate: bool = False
 ) -> Metric:
     """Update a metric"""
     try:

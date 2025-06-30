@@ -15,10 +15,11 @@ from crud.metric import (
     calculate_metric_value,
     calculate_all_metrics,
     bulk_create_metrics,
-    get_metric_statistics
+    get_metric_statistics,
+
 )
 
-router = APIRouter(prefix="/metrics", tags=["metrics"])
+router = APIRouter()
 
 @router.post("/", response_model=MetricOut)
 async def create_metric(
