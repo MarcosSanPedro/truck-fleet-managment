@@ -1,6 +1,3 @@
-
-
-
 from sqlalchemy import Column, Float, Integer, String
 from models.base import Base
 
@@ -12,3 +9,4 @@ class Metric(Base):
     name = Column(String, index=True, unique=True)
     value = Column(Float)  # Changed to Float for averages
     type = Column(String)
+    calculation_config = Column(String)  # Store as JSON string

@@ -36,6 +36,7 @@ class MetricCalculator:
             # Parse calculation config if it exists
             calc_config = {}
             if hasattr(metric, 'calculation_config') and metric.calculation_config:
+                import json
                 if isinstance(metric.calculation_config, str):
                     calc_config = json.loads(metric.calculation_config)
                 else:
@@ -220,7 +221,12 @@ def add_metric(db: Session, metric: MetricCreate) -> Metric:
         if metric.entity and metric.entity not in ENTITY_MODELS:
             raise HTTPException(status_code=400, detail=f"Invalid entity: {metric.entity}")
         
-        record = Metric(**metric.model_dump())
+        # Ensure calculation_config is stored as a string
+        metric_data = metric.model_dump()
+        if metric_data.get("calculation_config") is not None and not isinstance(metric_data["calculation_config"], str):
+            import json
+            metric_data["calculation_config"] = json.dumps(metric_data["calculation_config"])
+        record = Metric(**metric_data)
         db.add(record)
         db.commit()
         db.refresh(record)
@@ -350,6 +356,10 @@ def update_metric(
         # Update fields if provided
         if metric_update:
             update_data = metric_update.model_dump(exclude_unset=True)
+            # Ensure calculation_config is stored as a string
+            if update_data.get("calculation_config") is not None and not isinstance(update_data["calculation_config"], str):
+                import json
+                update_data["calculation_config"] = json.dumps(update_data["calculation_config"])
             for key, value in update_data.items():
                 setattr(record, key, value)
         
@@ -438,17 +448,17 @@ def bulk_create_metrics(db: Session, metrics: List[MetricCreate]) -> List[Metric
             # Validate entity
             if metric_data.entity and metric_data.entity not in ENTITY_MODELS:
                 raise HTTPException(status_code=400, detail=f"Invalid entity: {metric_data.entity}")
-            
-            record = Metric(**metric_data.model_dump())
+            metric_dict = metric_data.model_dump()
+            if metric_dict.get("calculation_config") is not None and not isinstance(metric_dict["calculation_config"], str):
+                import json
+                metric_dict["calculation_config"] = json.dumps(metric_dict["calculation_config"])
+            record = Metric(**metric_dict)
             db.add(record)
             created_metrics.append(record)
-        
         db.commit()
-        
         # Refresh all records
         for record in created_metrics:
             db.refresh(record)
-        
         return created_metrics
         
     except Exception as err:

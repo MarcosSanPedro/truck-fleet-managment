@@ -26,7 +26,7 @@ async def create_metric(
     metric: MetricCreate,
     db: Session = Depends(get_db)
 ):
-    """Create a new metric"""
+    """Create a new metric. calculation_config can be used to define filters, fields, or custom SQL for the metric calculation."""
     return add_metric(db, metric)
 
 @router.post("/bulk", response_model=List[MetricOut])
@@ -34,7 +34,7 @@ async def create_metrics_bulk(
     metrics: List[MetricCreate],
     db: Session = Depends(get_db)
 ):
-    """Create multiple metrics at once"""
+    """Create multiple metrics at once. Each metric can have its own calculation_config for property-based or config-driven metrics."""
     return bulk_create_metrics(db, metrics)
 
 @router.get("/", response_model=List[MetricOut])
@@ -77,7 +77,7 @@ async def update_metric_by_identifier(
     recalculate: bool = Query(False, description="Recalculate metric value after update"),
     db: Session = Depends(get_db)
 ):
-    """Update a metric by ID or name"""
+    """Update a metric by ID or name. calculation_config can be updated to change how the metric is calculated."""
     try:
         metric_id = int(metric_identifier)
         return update_metric(db, metric_id=metric_id, metric_update=metric_update, recalculate=recalculate)
