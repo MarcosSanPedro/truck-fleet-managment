@@ -100,22 +100,32 @@ class MetricCalculator:
     
     def _apply_filters(self, query, entity_model, filters: List[Dict]):
         """Apply filters to the query"""
+        # Detect JSON columns in the model
+        json_columns = set()
+        for attr in dir(entity_model):
+            col = getattr(entity_model, attr)
+            if hasattr(col, 'type') and hasattr(col.type, '__class__') and col.type.__class__.__name__ == 'JSON':
+                json_columns.add(attr)
         for filter_config in filters:
             field = filter_config.get('field')
             operator = filter_config.get('operator', '==')
             value = filter_config.get('value')
-            
             if not field:
                 continue
-                
-            # Handle JSON field extraction
-            if '.' in field and field.startswith('json:'):
+            # Handle JSON field extraction automatically
+            if '.' in field:
+                root, json_path = field.split('.', 1)
+                if root in json_columns:
+                    model_field = getattr(entity_model, root)
+                    expression = func.json_extract(model_field, f'$.{json_path}')
+                else:
+                    expression = getattr(entity_model, field)
+            elif field.startswith('json:'):
                 json_field, json_path = field.replace('json:', '').split('.', 1)
                 model_field = getattr(entity_model, json_field)
                 expression = func.json_extract(model_field, f'$.{json_path}')
             else:
                 expression = getattr(entity_model, field)
-            
             match operator.lower():
                 case '==' | 'eq':
                     query = query.filter(expression == value)
@@ -139,12 +149,24 @@ class MetricCalculator:
                     query = query.filter(expression.is_(None))
                 case 'is_not_null':
                     query = query.filter(expression.isnot(None))
-        
         return query
     
     def _get_field_expression(self, entity_model, field: str):
         """Get field expression, handling JSON fields"""
-        if '.' in field and field.startswith('json:'):
+        # Detect JSON columns in the model
+        json_columns = set()
+        for attr in dir(entity_model):
+            col = getattr(entity_model, attr)
+            if hasattr(col, 'type') and hasattr(col.type, '__class__') and col.type.__class__.__name__ == 'JSON':
+                json_columns.add(attr)
+        if '.' in field:
+            root, json_path = field.split('.', 1)
+            if root in json_columns:
+                model_field = getattr(entity_model, root)
+                return func.json_extract(model_field, f'$.{json_path}')
+            else:
+                return getattr(entity_model, field)
+        elif field.startswith('json:'):
             json_field, json_path = field.replace('json:', '').split('.', 1)
             model_field = getattr(entity_model, json_field)
             return func.json_extract(model_field, f'$.{json_path}')

@@ -25,46 +25,9 @@ def start_metrics_scheduler() -> AsyncIOScheduler:
     
     return scheduler
 
-# In crud/generate_metrics.py
-def calculate_active_drivers_job(metric_name: str, metric_type: str, calculation_config: Dict = None):
-    """Job function to calculate metrics for active drivers"""
-    try:
-        logger.info(f"Starting metric calculation for active drivers: {metric_name}")
-        db = SessionLocal()
-        try:
-            updated_metrics = calculate_driver_metrics_by_property(
-                db=db,
-                property_name="is_active",
-                property_value=True,
-                metric_type=metric_type,
-                metric_name=metric_name,
-                calculation_config=calculation_config
-            )
-            logger.info(f"Completed metric calculation for active drivers. Updated {len(updated_metrics)} metrics")
-            for metric in updated_metrics:
-                logger.debug(f"Updated metric: {metric.name} = {metric.value}")
-        finally:
-            db.close()
-    except Exception as e:
-        logger.error(f"Error in active drivers metric calculation: {str(e)}")
-
 def add_default_metric_jobs(scheduler: AsyncIOScheduler):
     """Add default metric calculation jobs"""
 
-
-    scheduler.add_job(
-        func=calculate_active_drivers_job,
-        trigger=IntervalTrigger(seconds=15),
-        id="active_drivers_count_15min",
-        name="Calculate active drivers count - 15 minutes",
-        max_instances=1,
-        coalesce=True,
-        kwargs={
-            "metric_name": "active_drivers_count",
-            "metric_type": "count"
-        }
-    )
-    
     # Job 1: Calculate all metrics every 5 minutes
     scheduler.add_job(
         func=calculate_all_metrics_job,
