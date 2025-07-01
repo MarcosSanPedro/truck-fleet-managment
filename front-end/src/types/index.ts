@@ -9,13 +9,13 @@ export interface Driver {
     street: string;
     city: string;
     state: string;
-    zipCode: string;
+    zip_code: string;
   };
   license: {
     number: string;
-    class: string;
-    expiration_date: string;
-    isValid: boolean;
+    license_class: string;
+    license_expiration: string;
+    is_valid: boolean;
   };
   employment: {
     hire_date: string;
@@ -39,14 +39,14 @@ export interface Driver {
     drug_test_date: string;
   };
   emergency_contact: {
-    contact_name: string;
+    emergency_contact: string;
     relationship: string;
     phone: string;
   };
 }
 
   export interface Job {
-    id?: number;
+    id: number;
     job_number: string;
     job_date: string;
     job_type: string;

@@ -1,4 +1,4 @@
-import type { Driver } from "@/types";
+import type { Driver } from "../types/index";
 
 
 export const emptyDriver: Omit<Driver, "id"> = {
@@ -11,13 +11,13 @@ export const emptyDriver: Omit<Driver, "id"> = {
     street: "",
     city: "",
     state: "",
-    zipCode: "",
+    zip_code: "",
   },
   license: {
     number: "",
-    expiration_date: "",
-    class: "",
-    isValid: false,
+    license_expiration: "",
+    license_class: "",
+    is_valid: false,
   },
   employment: {
     hire_date: "",
@@ -42,7 +42,7 @@ export const emptyDriver: Omit<Driver, "id"> = {
     drug_test_date: "",
   },
   emergency_contact: {
-    contact_name: "",
+    emergency_contact: "",
     relationship: "",
     phone: "",
   },

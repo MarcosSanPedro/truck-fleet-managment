@@ -30,21 +30,18 @@ export const DriverForm: React.FC<DriverFormProps> = ({
     e.preventDefault();
     onSubmit(formData);
   };
-  interface FormData {
-    [key: string]: string | number | { [nestedKey: string]: string | number };
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked, dataset } = e.target;
     const fieldKey = dataset.key; // Get data-key attribute for nested objects
 
-    setFormData((prev: FormData) => {
+    setFormData((prev) => {
       // If data-key exists, update nested property
       if (fieldKey) {
         return {
           ...prev,
-          [fieldKey]: {
-            ...(prev[fieldKey] as { [key: string]: string | number }),
+          [fieldKey as keyof typeof prev]: {
+            ...((prev[fieldKey as keyof typeof prev] as Record<string, any>) || {}),
             [name]: type === "checkbox" ? checked : value,
           },
         };
@@ -68,10 +65,8 @@ export const DriverForm: React.FC<DriverFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Object.keys(formData).map((key) => {
-          if (
-            typeof formData[key] === "string" ||
-            typeof formData[key] === "number"
-          ) {
+          const value = formData[key as keyof typeof formData];
+          if (typeof value === "string" || typeof value === "number") {
             return (
               <div key={key}>
                 <label
@@ -84,7 +79,7 @@ export const DriverForm: React.FC<DriverFormProps> = ({
                   type="text"
                   id={key}
                   name={key}
-                  value={formData[key] as string | number} // Ensure proper typing
+                  value={value}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -92,7 +87,7 @@ export const DriverForm: React.FC<DriverFormProps> = ({
               </div>
             );
           }
-          if (typeof formData[key] === "boolean" ) {
+          if (typeof value === "boolean") {
             return (
               <div key={key}>
                 {formatLabel(key)}
@@ -101,40 +96,36 @@ export const DriverForm: React.FC<DriverFormProps> = ({
                     type="checkbox"
                     id={key}
                     name={key}
-                    checked={formData[key]} // Ensure proper typing
+                    checked={value}
                     onChange={handleChange}
-                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </label>
               </div>
             );
           }
-
-          if (typeof formData[key] === "object") {
-            return Object.keys(formData[key]).map((nestedKey) => {
-              if (typeof formData[key][nestedKey] === "boolean") {
+          if (typeof value === "object" && value !== null) {
+            return Object.keys(value).map((nestedKey) => {
+              const nestedValue = (value as Record<string, any>)[nestedKey];
+              if (typeof nestedValue === "boolean") {
                 return (
-                  <div key={key}>
-                    {formatLabel(key)}
-                    <label
-                      htmlFor={key}
-                      className=" text-sm  text-gray-700 mb-1"
-                    >
+                  <div key={`${key}.${nestedKey}`}>
+                    {formatLabel(nestedKey)}
+                    <label htmlFor={`${key}.${nestedKey}`} className=" text-sm  text-gray-700 mb-1">
                       <input
                         type="checkbox"
-                        id={key}
-                        name={key}
-                        checked={formData[key]} // Ensure proper typing
+                        id={`${key}.${nestedKey}`}
+                        name={nestedKey}
+                        checked={nestedValue}
                         onChange={handleChange}
-                        required
+                        data-key={key}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </label>
                   </div>
                 );
-              } 
-              if(typeof formData[key][nestedKey] === "number" || "string") {
+              }
+              if (typeof nestedValue === "string" || typeof nestedValue === "number") {
                 return (
                   <div key={`${key}.${nestedKey}`}>
                     <label
@@ -147,22 +138,17 @@ export const DriverForm: React.FC<DriverFormProps> = ({
                       type="text"
                       id={`${key}.${nestedKey}`}
                       name={nestedKey}
-                      value={
-                        (formData[key] as { [key: string]: string | number })[
-                          nestedKey
-                        ] || ""
-                      }
+                      value={nestedValue}
                       onChange={handleChange}
-                      data-key={key} // Use data-key to indicate parent object
-                      required
+                      data-key={key}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 );
               }
+              return null;
             });
           }
-
           return null; // Handle unexpected cases
         })}
       </div>

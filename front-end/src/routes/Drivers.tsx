@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { Plus, UserCheck, UserX } from "lucide-react";
-import type { Driver } from "../types";
+import type { Driver } from "../types/index";
 import { apiService } from "../services/api";
 import { Table } from "../components/ui/table";
 import { Modal } from "../components/ui/Modal";
@@ -205,12 +205,20 @@ export default function Drivers(){
     const searchLower = searchTerm.toLowerCase();
     const fullName = `${driver.first_name} ${driver.last_name}`.toLowerCase();
     const email = driver.email.toLowerCase();
-    const licenseNumber = driver.license;
 
     return (
       fullName.includes(searchLower) ||
       email.includes(searchLower));
   });
+
+  /**
+   * Wrapper to adapt form submission to expected type
+   */
+  const handleFormSubmit = (driverData: Partial<Omit<Driver, "id">>) => {
+    // Optionally, validate required fields here before proceeding
+    // Only call handleSubmit if required fields are present
+    handleSubmit(driverData as Omit<Driver, "id">);
+  };
 
   return (
     <div className="space-y-6">
@@ -272,7 +280,7 @@ export default function Drivers(){
       >
         <DriverForm
           driver={editingDriver}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           onCancel={handleCloseModal}
         />
       </Modal>

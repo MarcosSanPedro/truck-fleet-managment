@@ -109,6 +109,7 @@ export const JobForm: React.FC<JobFormProps> = ({ job, onSubmit, onCancel }) => 
           Job Status
         </label>
         <select
+        
           id="job_status"
           name="job_status"
           value={formData.job_status}
