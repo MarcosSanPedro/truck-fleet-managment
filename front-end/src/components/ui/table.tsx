@@ -14,9 +14,10 @@ interface TableProps<T extends {id: number}> {
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   loading?: boolean;
+  rowLinkConfig?: { to: string; paramKey: string };
 }
 
-export const Table: React.FC<TableProps<any>> = ({ columns, data, onEdit, onDelete, loading }) => {
+export const Table: React.FC<TableProps<any>> = ({ columns, data, onEdit, onDelete, loading, rowLinkConfig }) => {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -65,9 +66,17 @@ export const Table: React.FC<TableProps<any>> = ({ columns, data, onEdit, onDele
 
                 {columns.map((column) => (
                   <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <Link className='whitespace-nowrap' to={`/drivers/$driverId`} params={{driverId: row.id}}>
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
-                </Link>
+                    {rowLinkConfig ? (
+                      <Link
+                        className="whitespace-nowrap"
+                        to={rowLinkConfig.to}
+                        params={{ [rowLinkConfig.paramKey]: row.id }}
+                      >
+                        {column.render ? column.render(row[column.key], row) : row[column.key]}
+                      </Link>
+                    ) : (
+                      column.render ? column.render(row[column.key], row) : row[column.key]
+                    )}
                   </td>
                 ))}
                 {(onEdit || onDelete) && (

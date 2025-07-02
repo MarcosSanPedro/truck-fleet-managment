@@ -200,6 +200,7 @@ export default function Trucks() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}
+        rowLinkConfig={{ to: '/trucks/$truckId', paramKey: 'truckId' }}
       />
 
       <Modal

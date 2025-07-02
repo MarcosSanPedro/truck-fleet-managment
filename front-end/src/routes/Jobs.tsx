@@ -62,7 +62,11 @@ export default function Jobs() {
       if (editingJob && editingJob.id) {
         const updated = await apiService.update("jobs", editingJob.id, jobData);
 
-        setJobs(prev => prev.map(j => j.id === editingJob.id ? updated : j));
+        setJobs(prev => prev.map(j => 
+          j.id === editingJob.id 
+            ? { ...j, ...updated, id: j.id }
+            : j
+        ));
       } else {
         const created = await apiService.create<Job>("jobs", jobData);
         setJobs(prev => [...prev, created]);
@@ -186,6 +190,7 @@ export default function Jobs() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={loading}
+        rowLinkConfig={{ to: '/jobs/$jobsId', paramKey: 'jobsId' }}
       />
 
       <Modal

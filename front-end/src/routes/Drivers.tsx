@@ -270,6 +270,7 @@ export default function Drivers(){
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={isLoading}
+        rowLinkConfig={{ to: '/drivers/$driverId', paramKey: 'driverId' }}
       />
 
       {/* Modal para agregar/editar conductor */}
