@@ -7,6 +7,19 @@ class JobBase(BaseModel):
     job_type: str
     job_description: str
     job_status: str
+    priority: str;
+    estimatedValue: str;
+    weight: str;
+    distance: str;
+    estimatedDuration: str;
+    origin: str;
+    destination: str;
+    driver: str;
+    vehicle: str;
+    specialRequirements: list[str];
+    progress: int;
+    nextCheckpoint: str;
+    eta: str;
 
 class JobCreate(JobBase):
     pass

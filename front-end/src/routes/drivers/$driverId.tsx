@@ -1,12 +1,7 @@
 import {
   createFileRoute,
   Link,
-  Navigate,
-  useNavigate,
-  useRouter,
-  type NotFoundError,
 } from "@tanstack/react-router";
-import { useState, useCallback, useEffect } from "react";
 import {
   ArrowLeft,
   Edit3,
@@ -16,7 +11,6 @@ import {
   Mail,
   Calendar,
   Shield,
-  User,
   MapPin,
   Truck,
   Award,
@@ -24,14 +18,11 @@ import {
   TrendingUp,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  FileText,
   Star,
-  Route as RouteIcon,
-  Zap,
 } from "lucide-react";
 import { apiService } from "../../services/api";
 import type { Driver } from "../../types/index";
+import useEntityDetails from "../../lib/useEntityDetails";
 
 export const Route = createFileRoute("/drivers/$driverId")({
   component: DriversDetails,
@@ -51,80 +42,21 @@ export const Route = createFileRoute("/drivers/$driverId")({
 
 function DriversDetails() {
   const loaderDriver = Route.useLoaderData() as Driver | null;
-  const [driver, setDriver] = useState<Driver | null>(loaderDriver);
-  const [editedDriver, setEditedDriver] = useState<Driver | null>(loaderDriver);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    setDriver(loaderDriver);
-    setEditedDriver(loaderDriver);
-  }, [loaderDriver]);
-
-  const handleDelete = useCallback(async () => {
-    if (!driver) return;
-    try {
-      await apiService.delete("drivers", driver.id);
-      setShowDeleteConfirm(false);
-      if (router.history.canGoBack()) {
-        router.history.back();
-      } else {
-        router.navigate({
-          to: "/Drivers",
-        });
-      }
-    } catch (error) {
-      setError("Failed to delete driver");
-    }
-  }, [driver]);
-
-  const handleSave = async () => {
-    if (!editedDriver) return;
-    try {
-      const updated = await apiService.update(
-        "drivers",
-        editedDriver.id,
-        editedDriver
-      );
-      setDriver(updated);
-      setEditedDriver(updated);
-      setIsEditing(false);
-      setError(null);
-    } catch (err) {
-      setError("Failed to update driver");
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditedDriver(driver);
-    setError(null);
-  };
-
-  const handleFieldChange = (field: string, value: any) => {
-    setEditedDriver((prev) => (prev ? { ...prev, [field]: value } : prev));
-  };
-
-  // For nested fields
-  const handleNestedFieldChange = (
-    section: string,
-    field: string,
-    value: any
-  ) => {
-    setEditedDriver((prev) =>
-      prev
-        ? {
-            ...prev,
-            [section]: {
-              ...((prev as any)[section] || {}),
-              [field]: value,
-            },
-          }
-        : prev
-    );
-  };
+  const {
+    entity: driver,
+    editedEntity: editedDriver,
+    isEditing,
+    error,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+    deleteEntity,
+    handleFieldChange,
+    handleNestedFieldChange,
+    setIsEditing,
+  } = useEntityDetails<Driver>("drivers", loaderDriver);
 
   // For double-nested fields (e.g., certifications.drug_test_date)
   const handleDoubleNestedFieldChange = (
@@ -133,20 +65,14 @@ function DriversDetails() {
     field: string,
     value: any
   ) => {
-    setEditedDriver((prev) =>
-      prev
-        ? {
-            ...prev,
-            [section]: {
-              ...((prev as any)[section] || {}),
-              [subSection]: {
-                ...((prev as any)[section]?.[subSection] || {}),
-                [field]: value,
-              },
-            },
-          }
-        : prev
-    );
+    if (!editedDriver) return;
+    handleFieldChange(section, {
+      ...((editedDriver as any)[section] || {}),
+      [subSection]: {
+        ...(((editedDriver as any)[section]?.[subSection]) || {}),
+        [field]: value,
+      },
+    });
   };
 
   const formatDate = (dateString?: string) =>
@@ -210,14 +136,14 @@ function DriversDetails() {
               {isEditing ? (
                 <>
                   <button
-                    onClick={handleSave}
+                    onClick={saveEdit}
                     className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 transition-colors"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Save
                   </button>
                   <button
-                    onClick={handleCancel}
+                    onClick={cancelEdit}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                   >
                     <XCircle className="w-4 h-4 mr-2" />
@@ -227,7 +153,7 @@ function DriversDetails() {
               ) : (
                 <button
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                  onClick={() => setIsEditing(true)}
+                  onClick={startEdit}
                 >
                   <Edit3 className="w-4 h-4 mr-2" />
                   Edit Profile
@@ -1009,7 +935,7 @@ function DriversDetails() {
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                onClick={deleteEntity}
                 className="px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Delete Driver

@@ -27,42 +27,6 @@ export default function Trucks() {
       setTrucks(data);
     } catch (error) {
       console.error('Error loading trucks:', error);
-      // For demo purposes, use mock data
-      setTrucks([
-        {
-          id: 1,
-          assign_driver: 'John Smith',
-          make: 'Freightliner',
-          model: 'Cascadia',
-          year: 2022,
-          color: 'White',
-          mileage: 45000,
-          vin: '1FUJGHDV8NLAA1234',
-          plate: 'FL-TRK-001',
-        },
-        {
-          id: 2,
-          assign_driver: 'Jane Doe',
-          make: 'Peterbilt',
-          model: '579',
-          year: 2021,
-          color: 'Blue',
-          mileage: 62000,
-          vin: '1XPWD40X1ED123456',
-          plate: 'FL-TRK-002',
-        },
-        {
-          id: 3,
-          assign_driver: '',
-          make: 'Kenworth',
-          model: 'T680',
-          year: 2023,
-          color: 'Red',
-          mileage: 15000,
-          vin: '1XKWD40X5JJ789012',
-          plate: 'FL-TRK-003',
-        },
-      ]);
     } finally {
       setLoading(false);
     }
