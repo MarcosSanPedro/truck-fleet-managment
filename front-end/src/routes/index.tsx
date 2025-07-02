@@ -264,7 +264,7 @@ export default function Dashboard () {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">High Safety</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">{getMetricValue('drivers_safety_ratings')}</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">{getMetricValue('drivers_safety_rating')}</p>
                 <p className="text-xs text-gray-600 mt-1">drivers ≥9.5</p>
               </div>
               <div className="p-3 rounded-lg bg-purple-100">

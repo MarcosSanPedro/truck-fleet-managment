@@ -34,42 +34,20 @@ function JobsDetails() {
     handleFieldChange,
   } = useEntityDetails<Job>("jobs", loaderJob);
 
-  // --- MOCK/DERIVED DATA (replace with real logic as needed) ---
-  const enhancedJobData = useMemo(() => ({
-    priority: "High",
-    origin: "Little Rock, AR",
-    destination: "Dallas, TX",
-    estimatedValue: "$12,000",
-    distance: "320 mi",
-    estimatedDuration: "6h 30m",
-    weight: "18,000 lbs",
-    temperature: "Refrigerated",
-    driver: "John Doe",
-    vehicle: "Freightliner Cascadia",
-    specialRequirements: ["HAZMAT", "Liftgate"],
-    progress: 65,
-    nextCheckpoint: "Texarkana, AR",
-  }), []);
-
-  const statusColor = useMemo(() => {
+  // Helper for status color
+  const statusColor = (() => {
     switch (job?.job_status) {
       case "completed": return "green";
       case "in-progress": return "blue";
       case "pending": return "yellow";
       default: return "gray";
     }
-  }, [job?.job_status]);
+  })();
 
-  // Date/time formatting helpers
-  const jobDateTime = useMemo(() => ({
-    date: job?.job_date || "N/A",
-    weekday: "Mon", // Replace with real logic
-    time: "08:00 AM", // Replace with real logic
-  }), [job]);
-  const etaDateTime = useMemo(() => ({
-    date: "2024-06-10", // Replace with real logic
-    time: "02:30 PM", // Replace with real logic
-  }), []);
+  // Helper for comma-separated specialRequirements
+  const specialReqValue = isEditing
+    ? (editedEntity?.specialRequirements?.join(", ") || "")
+    : (job?.specialRequirements?.join(", ") || "");
 
   if (!job) return <div>Job not found</div>;
 
@@ -87,32 +65,76 @@ function JobsDetails() {
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{job.job_number}</h1>
-                <p className="text-sm text-gray-500">{job.job_type} • {enhancedJobData.priority} Priority</p>
+                {isEditing ? (
+                  <input
+                    className="text-xl font-bold text-gray-900 bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                    value={editedEntity?.job_number || ''}
+                    onChange={e => handleFieldChange('job_number', e.target.value)}
+                  />
+                ) : (
+                  <h1 className="text-xl font-bold text-gray-900">{job.job_number}</h1>
+                )}
+                <p className="text-sm text-gray-500">
+                  {isEditing ? (
+                    <input
+                      className="bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500 w-24 mr-1"
+                      value={editedEntity?.job_type || ''}
+                      onChange={e => handleFieldChange('job_type', e.target.value)}
+                    />
+                  ) : (
+                    job.job_type
+                  )}
+                  {" • "}
+                  {isEditing ? (
+                    <input
+                      className="bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500 w-20"
+                      value={editedEntity?.priority || ''}
+                      onChange={e => handleFieldChange('priority', e.target.value)}
+                    />
+                  ) : (
+                    job.priority
+                  )} Priority
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={startEdit}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <Edit3 className="w-4 h-4 mr-2 inline" />
-                Edit
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4 mr-2 inline" />
-                Delete
-              </button>
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={saveEdit}
+                    className="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2 inline" />Save
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={startEdit}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4 mr-2 inline" />Edit
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2 inline" />Delete
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
-
+      {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Hero Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white">
             <div className="flex items-center justify-between">
@@ -120,18 +142,64 @@ function JobsDetails() {
                 <div className="flex items-center space-x-3 mb-2">
                   <Package className="w-8 h-8" />
                   <span className={`px-3 py-1 rounded-full text-sm font-medium bg-${statusColor}-100 text-${statusColor}-800 border border-${statusColor}-200`}>
-                    {job.job_status.charAt(0).toUpperCase() + job.job_status.slice(1).replace('-', ' ')}
+                    {isEditing ? (
+                      <input
+                        className="bg-white text-black border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1 rounded"
+                        value={editedEntity?.job_status || ''}
+                        onChange={e => handleFieldChange('job_status', e.target.value)}
+                      />
+                    ) : (
+                      job.job_status.charAt(0).toUpperCase() + job.job_status.slice(1).replace('-', ' ')
+                    )}
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold mb-1">{enhancedJobData.origin}</h2>
+                <h2 className="text-2xl font-bold mb-1">
+                  {isEditing ? (
+                    <input
+                      className="bg-white text-black border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1 rounded w-48"
+                      value={editedEntity?.origin || ''}
+                      onChange={e => handleFieldChange('origin', e.target.value)}
+                    />
+                  ) : (
+                    job.origin
+                  )}
+                </h2>
                 <div className="flex items-center text-blue-100">
                   <RouteIcon className="w-4 h-4 mr-2" />
-                  <span>{enhancedJobData.destination}</span>
+                  {isEditing ? (
+                    <input
+                      className="bg-white text-black border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1 rounded w-48"
+                      value={editedEntity?.destination || ''}
+                      onChange={e => handleFieldChange('destination', e.target.value)}
+                    />
+                  ) : (
+                    job.destination
+                  )}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold">{enhancedJobData.estimatedValue}</div>
-                <div className="text-blue-100">{enhancedJobData.distance}</div>
+                <div className="text-3xl font-bold">
+                  {isEditing ? (
+                    <input
+                      className="bg-white text-black border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1 rounded w-32 text-right"
+                      value={editedEntity?.estimatedValue || ''}
+                      onChange={e => handleFieldChange('estimatedValue', e.target.value)}
+                    />
+                  ) : (
+                    job.estimatedValue
+                  )}
+                </div>
+                <div className="text-blue-100">
+                  {isEditing ? (
+                    <input
+                      className="bg-white text-black border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1 rounded w-24 text-right"
+                      value={editedEntity?.distance || ''}
+                      onChange={e => handleFieldChange('distance', e.target.value)}
+                    />
+                  ) : (
+                    job.distance
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -140,159 +208,149 @@ function JobsDetails() {
             <div className="px-8 py-4 bg-gray-50">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Progress</span>
-                <span className="text-sm text-gray-500">{enhancedJobData.progress}% Complete</span>
+                <span className="text-sm text-gray-500">{isEditing ? (
+                  <input
+                    className="w-16 bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500 text-center"
+                    type="number"
+                    value={editedEntity?.progress ?? ''}
+                    onChange={e => handleFieldChange('progress', Number(e.target.value))}
+                  />
+                ) : (
+                  job.progress
+                )}% Complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${enhancedJobData.progress}%` }}
+                  style={{ width: `${isEditing ? editedEntity?.progress ?? job.progress : job.progress}%` }}
                 ></div>
               </div>
               <div className="flex items-center justify-between mt-2 text-sm text-gray-600">
-                <span>Next: {enhancedJobData.nextCheckpoint}</span>
-                <span>ETA: {etaDateTime.time}</span>
+                <span>Next: {isEditing ? (
+                  <input
+                    className="w-32 bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                    value={editedEntity?.nextCheckpoint || ''}
+                    onChange={e => handleFieldChange('nextCheckpoint', e.target.value)}
+                  />
+                ) : (
+                  job.nextCheckpoint
+                )}</span>
+                <span>ETA: {isEditing ? (
+                  <input
+                    className="w-24 bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                    value={editedEntity?.eta || ''}
+                    onChange={e => handleFieldChange('eta', e.target.value)}
+                  />
+                ) : (
+                  job.eta
+                )}</span>
               </div>
             </div>
           )}
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Job Description */}
+            {/* Job Description & Info */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Description</h3>
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium">Job Number</label>
-                    <input
-                      className="border rounded px-2 py-1 w-full"
-                      value={editedEntity?.job_number || ''}
-                      onChange={e => handleFieldChange("job_number", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Job Date</label>
-                    <input
-                      className="border rounded px-2 py-1 w-full"
-                      type="date"
-                      value={editedEntity?.job_date || ''}
-                      onChange={e => handleFieldChange("job_date", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Job Type</label>
-                    <input
-                      className="border rounded px-2 py-1 w-full"
-                      value={editedEntity?.job_type || ''}
-                      onChange={e => handleFieldChange("job_type", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Description</label>
-                    <textarea
-                      className="border rounded px-2 py-1 w-full"
-                      value={editedEntity?.job_description || ''}
-                      onChange={e => handleFieldChange("job_description", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Status</label>
-                    <input
-                      className="border rounded px-2 py-1 w-full"
-                      value={editedEntity?.job_status || ''}
-                      onChange={e => handleFieldChange("job_status", e.target.value)}
-                    />
-                  </div>
-                  <div className="flex space-x-2 mt-4">
-                    <button
-                      onClick={saveEdit}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <span className="text-sm text-gray-500">Job Number</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.job_number || ''} onChange={e => handleFieldChange('job_number', e.target.value)} /> : job.job_number}</div>
                 </div>
-              ) : (
-                <p className="text-gray-700 leading-relaxed">{job.job_description}</p>
-              )}
-              {enhancedJobData.specialRequirements.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Special Requirements</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {enhancedJobData.specialRequirements.map((req, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
-                      >
-                        <Shield className="w-3 h-3 mr-1" />
-                        {req}
-                      </span>
-                    ))}
-                  </div>
+                <div>
+                  <span className="text-sm text-gray-500">Job Date</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" type="date" value={editedEntity?.job_date || ''} onChange={e => handleFieldChange('job_date', e.target.value)} /> : job.job_date}</div>
                 </div>
-              )}
+                <div>
+                  <span className="text-sm text-gray-500">Job Type</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.job_type || ''} onChange={e => handleFieldChange('job_type', e.target.value)} /> : job.job_type}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Priority</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.priority || ''} onChange={e => handleFieldChange('priority', e.target.value)} /> : job.priority}</div>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="text-sm text-gray-500">Description</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <textarea className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.job_description || ''} onChange={e => handleFieldChange('job_description', e.target.value)} /> : job.job_description}</div>
+                </div>
+              </div>
+              {/* Special Requirements */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-3">Special Requirements</h4>
+                <div className="flex flex-wrap gap-2">
+                  {isEditing ? (
+                    <input
+                      className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                      value={specialReqValue}
+                      onChange={e => handleFieldChange('specialRequirements', e.target.value.split(',').map(f => f.trim()))}
+                    />
+                  ) : (
+                    job.specialRequirements.map((req, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">{req}</span>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
-
-            {/* Timeline */}
+            {/* Assignment & Route */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Timeline & Status</h3>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-gray-900">Job Created</h4>
-                      <span className="text-sm text-gray-500">{jobDateTime.date}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">{jobDateTime.weekday} at {jobDateTime.time}</p>
-                  </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment & Route</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <span className="text-sm text-gray-500">Driver</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.driver || ''} onChange={e => handleFieldChange('driver', e.target.value)} /> : job.driver}</div>
                 </div>
-                {job.job_status === 'in-progress' && (
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Play className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-900">In Transit</h4>
-                        <span className="text-sm text-gray-500">Current</span>
-                      </div>
-                      <p className="text-sm text-gray-600">Driver en route to destination</p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-start space-x-4">
-                  <div className={`flex-shrink-0 w-10 h-10 ${job.job_status === 'completed' ? 'bg-green-100' : 'bg-gray-100'} rounded-full flex items-center justify-center`}>
-                    <CheckCircle2 className={`w-5 h-5 ${job.job_status === 'completed' ? 'text-green-600' : 'text-gray-400'}`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className={`font-medium ${job.job_status === 'completed' ? 'text-gray-900' : 'text-gray-500'}`}>
-                        Delivery Complete
-                      </h4>
-                      <span className="text-sm text-gray-500">
-                        {job.job_status === 'completed' ? etaDateTime.date : 'Pending'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {job.job_status === 'completed' ? 'Successfully delivered' : 'Awaiting completion'}
-                    </p>
-                  </div>
+                <div>
+                  <span className="text-sm text-gray-500">Vehicle</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.vehicle || ''} onChange={e => handleFieldChange('vehicle', e.target.value)} /> : job.vehicle}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Origin</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.origin || ''} onChange={e => handleFieldChange('origin', e.target.value)} /> : job.origin}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Destination</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.destination || ''} onChange={e => handleFieldChange('destination', e.target.value)} /> : job.destination}</div>
+                </div>
+              </div>
+            </div>
+            {/* Stats */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Stats</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <span className="text-sm text-gray-500">Estimated Value</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.estimatedValue || ''} onChange={e => handleFieldChange('estimatedValue', e.target.value)} /> : job.estimatedValue}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Weight</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.weight || ''} onChange={e => handleFieldChange('weight', e.target.value)} /> : job.weight}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Distance</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.distance || ''} onChange={e => handleFieldChange('distance', e.target.value)} /> : job.distance}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Estimated Duration</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.estimatedDuration || ''} onChange={e => handleFieldChange('estimatedDuration', e.target.value)} /> : job.estimatedDuration}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Progress (%)</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" type="number" value={editedEntity?.progress ?? ''} onChange={e => handleFieldChange('progress', Number(e.target.value))} /> : job.progress}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Next Checkpoint</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.nextCheckpoint || ''} onChange={e => handleFieldChange('nextCheckpoint', e.target.value)} /> : job.nextCheckpoint}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">ETA</span>
+                  <div className="font-medium text-gray-900 mt-1">{isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" value={editedEntity?.eta || ''} onChange={e => handleFieldChange('eta', e.target.value)} /> : job.eta}</div>
                 </div>
               </div>
             </div>
           </div>
-
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Stats */}
@@ -304,28 +362,69 @@ function JobsDetails() {
                     <Calendar className="w-4 h-4 text-gray-400 mr-2" />
                     <span className="text-sm text-gray-600">Scheduled</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{jobDateTime.date}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        type="date"
+                        value={editedEntity?.job_date || ''}
+                        onChange={e => handleFieldChange('job_date', e.target.value)}
+                      />
+                    ) : (
+                      job.job_date
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 text-gray-400 mr-2" />
                     <span className="text-sm text-gray-600">Duration</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{enhancedJobData.estimatedDuration}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={editedEntity?.estimatedDuration || ''}
+                        onChange={e => handleFieldChange('estimatedDuration', e.target.value)}
+                      />
+                    ) : (
+                      job.estimatedDuration
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Weight className="w-4 h-4 text-gray-400 mr-2" />
                     <span className="text-sm text-gray-600">Weight</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{enhancedJobData.weight}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={editedEntity?.weight || ''}
+                        onChange={e => handleFieldChange('weight', e.target.value)}
+                      />
+                    ) : (
+                      job.weight
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Thermometer className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Temperature</span>
+                    <span className="text-sm text-gray-600">Priority</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{enhancedJobData.temperature}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={editedEntity?.priority || ''}
+                        onChange={e => handleFieldChange('priority', e.target.value)}
+                      />
+                    ) : (
+                      job.priority
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
@@ -339,8 +438,15 @@ function JobsDetails() {
                     <span className="text-sm font-medium text-gray-900">Driver</span>
                   </div>
                   <div className="ml-6">
-                    <div className="font-medium text-gray-900">{enhancedJobData.driver}</div>
-                    <div className="text-sm text-gray-500">CDL Class A • 8 years exp.</div>
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={editedEntity?.driver || ''}
+                        onChange={e => handleFieldChange('driver', e.target.value)}
+                      />
+                    ) : (
+                      <div className="font-medium text-gray-900">{job.driver}</div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -349,25 +455,20 @@ function JobsDetails() {
                     <span className="text-sm font-medium text-gray-900">Vehicle</span>
                   </div>
                   <div className="ml-6">
-                    <div className="font-medium text-gray-900">{enhancedJobData.vehicle}</div>
-                    <div className="text-sm text-gray-500">Refrigerated Truck</div>
+                    {isEditing ? (
+                      <input
+                        className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                        value={editedEntity?.vehicle || ''}
+                        onChange={e => handleFieldChange('vehicle', e.target.value)}
+                      />
+                    ) : (
+                      <div className="font-medium text-gray-900">{job.vehicle}</div>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <div className="flex space-x-2">
-                  <button className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <Phone className="w-4 h-4 mr-1 inline" />
-                    Call Driver
-                  </button>
-                  <button className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <MessageSquare className="w-4 h-4 mr-1 inline" />
-                    Message
-                  </button>
-                </div>
-              </div>
             </div>
-            {/* Location */}
+            {/* Route */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Route</h3>
               <div className="space-y-3">
@@ -375,7 +476,17 @@ function JobsDetails() {
                   <div className="w-3 h-3 bg-green-500 rounded-full mt-1.5"></div>
                   <div>
                     <div className="font-medium text-gray-900">Origin</div>
-                    <div className="text-sm text-gray-600">{enhancedJobData.origin}</div>
+                    <div className="text-sm text-gray-600">
+                      {isEditing ? (
+                        <input
+                          className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                          value={editedEntity?.origin || ''}
+                          onChange={e => handleFieldChange('origin', e.target.value)}
+                        />
+                      ) : (
+                        job.origin
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="ml-1.5 border-l-2 border-dashed border-gray-300 h-6"></div>
@@ -383,7 +494,17 @@ function JobsDetails() {
                   <div className="w-3 h-3 bg-red-500 rounded-full mt-1.5"></div>
                   <div>
                     <div className="font-medium text-gray-900">Destination</div>
-                    <div className="text-sm text-gray-600">{enhancedJobData.destination}</div>
+                    <div className="text-sm text-gray-600">
+                      {isEditing ? (
+                        <input
+                          className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500"
+                          value={editedEntity?.destination || ''}
+                          onChange={e => handleFieldChange('destination', e.target.value)}
+                        />
+                      ) : (
+                        job.destination
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -395,7 +516,6 @@ function JobsDetails() {
           </div>
         </div>
       </div>
-
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
