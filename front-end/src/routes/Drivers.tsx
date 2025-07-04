@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, UserCheck, UserX } from "lucide-react";
 import type { Driver } from "../types/index";
 import { apiService } from "../services/api";
-import { Table } from "../components/ui/table";
-import { Modal } from "../components/ui/Modal";
+import { Table } from "../components/table";
+import { Modal } from "../components/Modal";
 import { DriverForm } from "../components/forms/driversForms";
 
 /**

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Truck as TruckIcon } from 'lucide-react';
 import type { Truck } from '../types/index';
 import { apiService } from '../services/api';
-import { Table } from '../components/ui/table';
-import { Modal } from '../components/ui/Modal';
+import { Table } from '../components/table';
+import { Modal } from '../components/Modal';
 import { TruckForm } from '../components/forms/trucksForm';
 
 export const Route = createFileRoute('/Trucks')({

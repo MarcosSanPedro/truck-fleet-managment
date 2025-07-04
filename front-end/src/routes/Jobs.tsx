@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
 import type { Job } from '../types/index';
 import { apiService } from '../services/api';
-import { Table } from '../components/ui/table';
-import { Modal } from '../components/ui/Modal';
+import { Table } from '../components/table';
+import { Modal } from '../components/Modal';
 import { JobForm } from '../components/forms/jobsForm';
 
 export const Route = createFileRoute('/Jobs')({

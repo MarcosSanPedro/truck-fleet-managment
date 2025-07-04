@@ -1,70 +1,58 @@
-import { apiService } from '../services/api';
-import type { Driver, Job, Maintenance, Metric, Truck } from '../types/index';
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useState } from 'react';
-import { 
-  Users, 
-  Truck as TruckIcon, 
-  Briefcase, 
-  Wrench, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
+import { apiService } from "../services/api";
+import type { Driver, Job, Metric, Truck } from "../types/index";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Users,
+  Truck as TruckIcon,
+  Briefcase,
+  AlertTriangle,
   MapPin,
   Shield,
   Search,
-  Filter,
   Download,
-  Calendar,
   TrendingUp,
-  AlertCircle,
-  Eye,
-  Phone,
-  Mail,
-  ChevronDown,
-  ChevronUp,
   Target,
-  Activity
-} from 'lucide-react';
+  Activity,
+} from "lucide-react";
 
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
-
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: Dashboard,
-})
+});
 
-export default function Dashboard () {  
-  const [searchTerm, setSearchTerm] = useState('');
+export default function Dashboard() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  
+
   // Data states
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
 
-
   // Data fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // TODO: Replace with your actual API service calls
-        const [driversInfo, trucksInfo, jobsInfo, metricsInfo] = await Promise.all([
-          apiService.get<Driver>('/drivers'),
-          apiService.get<Truck>('/trucks'),
-          apiService.get<Job>('/jobs'),
-          apiService.get<Metric>('/metrics')
-        ]);
+        const [driversInfo, trucksInfo, jobsInfo, metricsInfo] =
+          await Promise.all([
+            apiService.get<Driver>("/drivers"),
+            apiService.get<Truck>("/trucks"),
+            apiService.get<Job>("/jobs"),
+            apiService.get<Metric>("/metrics"),
+          ]);
 
         setDrivers(driversInfo);
         setTrucks(trucksInfo);
         setJobs(jobsInfo);
         setMetrics(metricsInfo);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -75,64 +63,100 @@ export default function Dashboard () {
 
   // Helper function to get metric value by name
   const getMetricValue = (name: string): number => {
-    const metric = metrics.find(m => m.name === name);
+    const metric = metrics.find((m) => m.name === name);
     return metric ? metric.value : 0;
   };
 
   // Computed data for charts
-  const jobStatusData = useMemo(() => [
-    { name: 'Completed', value: getMetricValue('completed_jobs'), color: '#10B981' },
-    { name: 'In Progress', value: getMetricValue('in_progress_jobs'), color: '#5EABD6' },
-    { name: 'Pending', value: getMetricValue('pending_jobs'), color: '#F59E0B' },
-    { name: 'Cancelled', value: getMetricValue('cancelled_jobs'), color: '#EF4444' }
-  ], [metrics]);
+  const jobStatusData = useMemo(
+    () => [
+      {
+        name: "Completed",
+        value: getMetricValue("completed_jobs"),
+        color: "#10B981",
+      },
+      {
+        name: "In Progress",
+        value: getMetricValue("in_progress_jobs"),
+        color: "#5EABD6",
+      },
+      {
+        name: "Pending",
+        value: getMetricValue("pending_jobs"),
+        color: "#F59E0B",
+      },
+      {
+        name: "Cancelled",
+        value: getMetricValue("cancelled_jobs"),
+        color: "#EF4444",
+      },
+    ],
+    [metrics]
+  );
 
-  const driverStatusData = useMemo(() => [
-    { name: 'Active', value: getMetricValue('active_drivers'), color: '#10B981' },
-    { name: 'Inactive', value: getMetricValue('inactive_drivers'), color: '#6B7280' }
-  ], [metrics]);
+  useEffect(() => {
+    console.log(jobStatusData);
+  }, [jobStatusData]);
+  
+  const driverStatusData = useMemo(
+    () => [
+      {
+        name: "Active",
+        value: getMetricValue("active_drivers"),
+        color: "#10B981",
+      },
+      {
+        name: "Inactive",
+        value: getMetricValue("inactive_drivers"),
+        color: "#6B7280",
+      },
+    ],
+    [metrics]
+  );
 
   // Active drivers with current assignments
   const activeDriversWithAssignments = useMemo(() => {
-    return drivers.filter(d => d.is_active && d.employment.status === 'active');
+    return drivers.filter(
+      (d) => d.is_active && d.employment.status === "active"
+    );
   }, [drivers]);
 
   // Critical alerts
   const criticalAlerts = useMemo(() => {
     const alerts = [];
-    
+
     // License expiring soon
-    const expiringLicenses = drivers.filter(d => {
+    const expiringLicenses = drivers.filter((d) => {
       const expirationDate = new Date(d.license.license_expiration);
       const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       return !d.license.is_valid || expirationDate < thirtyDaysFromNow;
     });
-    
+
     if (expiringLicenses.length > 0) {
       alerts.push({
-        type: 'license',
+        type: "license",
         count: expiringLicenses.length,
-        message: `${expiringLicenses.length} driver license(s) expiring soon`
+        message: `${expiringLicenses.length} driver license(s) expiring soon`,
       });
     }
 
     // High mileage trucks
-    const highMileageTrucks = trucks.filter(t => t.mileage > 200000);
+    const highMileageTrucks = trucks.filter((t) => t.mileage > 200000);
     if (highMileageTrucks.length > 0) {
       alerts.push({
-        type: 'mileage',
+        type: "mileage",
         count: highMileageTrucks.length,
-        message: `${highMileageTrucks.length} truck(s) with high mileage`
+        message: `${highMileageTrucks.length} truck(s) with high mileage`,
       });
     }
 
     // Cancelled jobs
-    const cancelledJobs = getMetricValue('cancelled_jobs');
+    const cancelledJobs = getMetricValue("cancelled_jobs");
     if (cancelledJobs > 0) {
       alerts.push({
-        type: 'cancelled',
+        type: "cancelled",
         count: cancelledJobs,
-        message: `${cancelledJobs} cancelled job(s) need attention`
+        message: `${cancelledJobs} cancelled job(s) need attention`,
       });
     }
 
@@ -141,18 +165,18 @@ export default function Dashboard () {
 
   function getStatusBadgeClass(status: string): string {
     const classes: Record<string, string> = {
-      'on-route': 'bg-blue-100 text-blue-800',
-      'loading': 'bg-purple-100 text-purple-800',
-      'available': 'bg-green-100 text-green-800',
-      'off-duty': 'bg-gray-100 text-gray-800',
-      'maintenance': 'bg-red-100 text-red-800'
+      "on-route": "bg-blue-100 text-blue-800",
+      loading: "bg-purple-100 text-purple-800",
+      available: "bg-green-100 text-green-800",
+      "off-duty": "bg-gray-100 text-gray-800",
+      maintenance: "bg-red-100 text-red-800",
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || "bg-gray-100 text-gray-800";
   }
 
   function exportData(): void {
-    console.log('Exporting dashboard data...');
-    alert('Dashboard data exported successfully!');
+    console.log("Exporting dashboard data...");
+    alert("Dashboard data exported successfully!");
   }
 
   if (loading) {
@@ -173,10 +197,14 @@ export default function Dashboard () {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Fleet Management Dashboard</h1>
-              <p className="text-gray-600">Real-time fleet operations overview</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Fleet Management Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Real-time fleet operations overview
+              </p>
             </div>
-            
+
             <div className="flex gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -188,7 +216,7 @@ export default function Dashboard () {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                 />
               </div>
-              <button 
+              <button
                 onClick={exportData}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
@@ -208,7 +236,10 @@ export default function Dashboard () {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {criticalAlerts.map((alert, index) => (
-                <div key={index} className="bg-white p-3 rounded-lg border border-red-200">
+                <div
+                  key={index}
+                  className="bg-white p-3 rounded-lg border border-red-200"
+                >
                   <p className="text-sm text-red-700">{alert.message}</p>
                 </div>
               ))}
@@ -221,11 +252,15 @@ export default function Dashboard () {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Drivers</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{getMetricValue('drivers_counter')}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Drivers
+                </p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">
+                  {getMetricValue("drivers_counter")}
+                </p>
                 <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
-                  {getMetricValue('active_drivers')} active
+                  {getMetricValue("active_drivers")} active
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-blue-100">
@@ -238,8 +273,12 @@ export default function Dashboard () {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{getMetricValue('in_progress_jobs')}</p>
-                <p className="text-xs text-gray-600 mt-1">of {getMetricValue('jobs_counter')} total</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {getMetricValue("in_progress_jobs")}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  of {getMetricValue("jobs_counter")} total
+                </p>
               </div>
               <div className="p-3 rounded-lg bg-green-100">
                 <Activity className="w-6 h-6 text-green-600" />
@@ -251,7 +290,9 @@ export default function Dashboard () {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Fleet Size</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{getMetricValue('trucks_counter')}</p>
+                <p className="text-3xl font-bold text-orange-600 mt-2">
+                  {getMetricValue("trucks_counter")}
+                </p>
                 <p className="text-xs text-gray-600 mt-1">vehicles</p>
               </div>
               <div className="p-3 rounded-lg bg-orange-100">
@@ -264,7 +305,9 @@ export default function Dashboard () {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">High Safety</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">{getMetricValue('drivers_safety_rating')}</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">
+                  {getMetricValue("drivers_safety_rating")}
+                </p>
                 <p className="text-xs text-gray-600 mt-1">drivers ≥ 4.5</p>
               </div>
               <div className="p-3 rounded-lg bg-purple-100">
@@ -308,13 +351,15 @@ export default function Dashboard () {
               {jobStatusData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
+                    <div
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: item.color }}
                     ></div>
                     <span className="text-sm text-gray-600">{item.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{item.value}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {item.value}
+                  </span>
                 </div>
               ))}
             </div>
@@ -352,13 +397,15 @@ export default function Dashboard () {
               {driverStatusData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
+                    <div
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: item.color }}
                     ></div>
                     <span className="text-sm text-gray-600">{item.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{item.value}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {item.value}
+                  </span>
                 </div>
               ))}
             </div>
@@ -373,10 +420,17 @@ export default function Dashboard () {
 
             <div className="space-y-3 max-h-64">
               {activeDriversWithAssignments.map((driver) => (
-                <div key={driver.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                <div
+                  key={driver.id}
+                  className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-gray-900 text-sm">{driver.first_name} {driver.last_name}</p>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(driver.current_assignment.status)}`}>
+                    <p className="font-medium text-gray-900 text-sm">
+                      {driver.first_name} {driver.last_name}
+                    </p>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(driver.current_assignment.status)}`}
+                    >
                       {driver.current_assignment.status}
                     </span>
                   </div>
@@ -387,7 +441,8 @@ export default function Dashboard () {
                     <span>{driver.current_assignment.route}</span>
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
-                    Safety: {driver.performance.safety_rating}/10 • On-time: {driver.performance.on_time_delivery_rate}%
+                    Safety: {driver.performance.safety_rating}/10 • On-time:{" "}
+                    {driver.performance.on_time_delivery_rate}%
                   </div>
                 </div>
               ))}
@@ -404,14 +459,23 @@ export default function Dashboard () {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {trucks.map((truck) => (
-              <div key={truck.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <div
+                key={truck.id}
+                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="font-medium text-gray-900">{truck.make} {truck.model}</h4>
-                    <p className="text-sm text-gray-600">{truck.plate} • {truck.year}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {truck.make} {truck.model}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {truck.plate} • {truck.year}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">{truck.mileage.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {truck.mileage.toLocaleString()}
+                    </p>
                     <p className="text-xs text-gray-600">miles</p>
                     {truck.mileage > 100000 && (
                       <AlertTriangle className="w-4 h-4 text-yellow-500 ml-auto mt-1" />
@@ -434,6 +498,4 @@ export default function Dashboard () {
       </div>
     </div>
   );
-};
- 
-
+}

@@ -4,21 +4,20 @@ import '../styles/globals.css'
 import {
   createRootRoute,
   Outlet,
-  useRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import LogisticsErrorPage from "../components/ui/LogisticsErrorPage";
+import LogisticsErrorPage from "../components/LogisticsErrorPage";
 
 export const Route = createRootRoute({
   component: RootLayout,
-  notFoundComponent: ({data})=> <LogisticsErrorPage error={{status: 404, message: "Not Found"}} />
+  notFoundComponent: ()=> <LogisticsErrorPage error={{status: 404, message: "Not Found"}} />
 });
 
+
 export default function RootLayout() {
-  const router = useRouter();
-  console.log(router.basepath);
+
   return (
-    <Layout activeTab={router.basepath}>
+    <Layout>
       {/* <> */}
       <Outlet />
       <TanStackRouterDevtools />
