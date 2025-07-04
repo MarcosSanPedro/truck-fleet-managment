@@ -82,7 +82,7 @@ export default function Dashboard () {
   // Computed data for charts
   const jobStatusData = useMemo(() => [
     { name: 'Completed', value: getMetricValue('completed_jobs'), color: '#10B981' },
-    { name: 'In Progress', value: getMetricValue('in_progress_jobs'), color: '#3B82F6' },
+    { name: 'In Progress', value: getMetricValue('in_progress_jobs'), color: '#5EABD6' },
     { name: 'Pending', value: getMetricValue('pending_jobs'), color: '#F59E0B' },
     { name: 'Cancelled', value: getMetricValue('cancelled_jobs'), color: '#EF4444' }
   ], [metrics]);
@@ -117,7 +117,7 @@ export default function Dashboard () {
     }
 
     // High mileage trucks
-    const highMileageTrucks = trucks.filter(t => t.mileage > 100000);
+    const highMileageTrucks = trucks.filter(t => t.mileage > 200000);
     if (highMileageTrucks.length > 0) {
       alerts.push({
         type: 'mileage',
@@ -265,7 +265,7 @@ export default function Dashboard () {
               <div>
                 <p className="text-sm font-medium text-gray-600">High Safety</p>
                 <p className="text-3xl font-bold text-purple-600 mt-2">{getMetricValue('drivers_safety_rating')}</p>
-                <p className="text-xs text-gray-600 mt-1">drivers ≥9.5</p>
+                <p className="text-xs text-gray-600 mt-1">drivers ≥ 4.5</p>
               </div>
               <div className="p-3 rounded-lg bg-purple-100">
                 <Shield className="w-6 h-6 text-purple-600" />
@@ -371,7 +371,7 @@ export default function Dashboard () {
               Active Drivers
             </h2>
 
-            <div className="space-y-3 max-h-64 overflow-y-auto">
+            <div className="space-y-3 max-h-64">
               {activeDriversWithAssignments.map((driver) => (
                 <div key={driver.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                   <div className="flex items-center justify-between mb-2">

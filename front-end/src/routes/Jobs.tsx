@@ -97,7 +97,7 @@ export default function Jobs() {
     switch (status) {
       case 'completed':
         return <CheckCircle size={16} className="text-green-600" />;
-      case 'in_progress':
+      case 'in-progress':
         return <Clock size={16} className="text-blue-600" />;
       case 'pending':
         return <Calendar size={16} className="text-yellow-600" />;
@@ -112,7 +112,7 @@ export default function Jobs() {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'in_progress':
+      case 'in-progress':
         return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
