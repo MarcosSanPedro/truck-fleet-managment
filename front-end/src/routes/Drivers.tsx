@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, UserCheck, UserX } from "lucide-react";
 import type { Driver } from "../types/index";
 import { apiService } from "../services/api";
-import { Table } from "../components/table";
+import { DataTable } from "../components/data-table";
 import { Modal } from "../components/Modal";
 import { DriverForm } from "../components/forms/driversForms";
 
@@ -65,7 +65,9 @@ export const Route = createFileRoute("/Drivers")({
   loader: async () => {
     const response = await apiService.get<Driver[]>("drivers");
     // Si la respuesta es un array de arrays, tomar el primer elemento
-    return Array.isArray(response) && Array.isArray(response[0]) ? response[0] : response;
+    return Array.isArray(response) && Array.isArray(response[0])
+      ? response[0]
+      : response;
   },
   pendingComponent: () => <EmptyTable columns={columns} />,
 });
@@ -74,7 +76,7 @@ export const Route = createFileRoute("/Drivers")({
  * Componente principal para la gestión de conductores
  * @returns {JSX.Element} Componente de gestión de conductores
  */
-export default function Drivers(){
+export default function Drivers() {
   // Estados del componente
   const initialDrivers = Route.useLoaderData() as Driver[];
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers || []);
@@ -90,7 +92,7 @@ export default function Drivers(){
   useEffect(() => {
     if (initialDrivers && Array.isArray(initialDrivers)) {
       // Asegurar que tenemos un array plano de conductores
-      const flatDrivers = Array.isArray(initialDrivers[0]) 
+      const flatDrivers = Array.isArray(initialDrivers[0])
         ? (initialDrivers as unknown as Driver[][]).flat()
         : initialDrivers;
       setDrivers(flatDrivers);
@@ -101,7 +103,6 @@ export default function Drivers(){
    * Maneja la creación de un nuevo conductor
    */
   const handleCreate = useCallback((): void => {
-
     setEditingDriver(undefined);
     setIsModalOpen(true);
     setError(null);
@@ -112,7 +113,7 @@ export default function Drivers(){
    * @param {Driver} driver - El conductor a editar
    */
   const handleEdit = useCallback((driver: Driver): void => {
-    console.log(driver)
+    console.log(driver);
     setEditingDriver(driver);
     setIsModalOpen(true);
     setError(null);
@@ -142,7 +143,9 @@ export default function Drivers(){
       setDrivers((prev) => prev.filter((d) => d.id !== driver.id));
     } catch (error) {
       console.error("Error deleting driver:", error);
-      setError("Error al eliminar el conductor. Por favor, inténtelo de nuevo.");
+      setError(
+        "Error al eliminar el conductor. Por favor, inténtelo de nuevo."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -152,42 +155,48 @@ export default function Drivers(){
    * Maneja el envío del formulario de conductor (crear/actualizar)
    * @param {Omit<Driver, "id">} driverData - Los datos del conductor
    */
-  const handleSubmit = useCallback(async (driverData: Omit<Driver, "id">): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      if (editingDriver && editingDriver.id) {
-        // Actualizar conductor existente
-        const updatedDriver = await apiService.update<Driver>(
-          "drivers",
-          editingDriver.id,
-          driverData
-        );
-        setDrivers((prev) =>
-          prev.map((driver) => 
-            driver.id === editingDriver.id ? updatedDriver : driver
-          )
-        );
-      } else {
-        // Crear nuevo conductor
-        const newDriver = await apiService.create<Driver>("drivers", driverData);
-        setDrivers((prev) => [...prev, newDriver]);
-      }
+  const handleSubmit = useCallback(
+    async (driverData: Omit<Driver, "id">): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        if (editingDriver && editingDriver.id) {
+          // Actualizar conductor existente
+          const updatedDriver = await apiService.update<Driver>(
+            "drivers",
+            editingDriver.id,
+            driverData
+          );
+          setDrivers((prev) =>
+            prev.map((driver) =>
+              driver.id === editingDriver.id ? updatedDriver : driver
+            )
+          );
+        } else {
+          // Crear nuevo conductor
+          const newDriver = await apiService.create<Driver>(
+            "drivers",
+            driverData
+          );
+          setDrivers((prev) => [...prev, newDriver]);
+        }
 
-      // Cerrar modal y limpiar estado
-      setIsModalOpen(false);
-      setEditingDriver(undefined);
-    } catch (error) {
-      console.error("Error saving driver:", error);
-      setError(
-        editingDriver 
-          ? "Error al actualizar el conductor. Por favor, inténtelo de nuevo."
-          : "Error al crear el conductor. Por favor, inténtelo de nuevo."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [editingDriver]);
+        // Cerrar modal y limpiar estado
+        setIsModalOpen(false);
+        setEditingDriver(undefined);
+      } catch (error) {
+        console.error("Error saving driver:", error);
+        setError(
+          editingDriver
+            ? "Error al actualizar el conductor. Por favor, inténtelo de nuevo."
+            : "Error al crear el conductor. Por favor, inténtelo de nuevo."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [editingDriver]
+  );
 
   /**
    * Maneja el cierre del modal
@@ -206,9 +215,7 @@ export default function Drivers(){
     const fullName = `${driver.first_name} ${driver.last_name}`.toLowerCase();
     const email = driver.email.toLowerCase();
 
-    return (
-      fullName.includes(searchLower) ||
-      email.includes(searchLower));
+    return fullName.includes(searchLower) || email.includes(searchLower);
   });
 
   /**
@@ -264,13 +271,13 @@ export default function Drivers(){
       </div>
 
       {/* Tabla de conductores */}
-      <Table
+      <DataTable
         columns={columns}
         data={filteredDrivers}
         onEdit={handleEdit}
         onDelete={handleDelete}
         loading={isLoading}
-        rowLinkConfig={{ to: '/drivers/$driverId', paramKey: 'driverId' }}
+        rowLinkConfig={{ to: "/drivers/$driverId", paramKey: "driverId" }}
       />
 
       {/* Modal para agregar/editar conductor */}
@@ -294,7 +301,7 @@ export default function Drivers(){
  * @param {EmptyTableProps} props - Las propiedades del componente
  * @returns {JSX.Element} Componente de tabla vacía
  */
-function EmptyTable({ columns }: EmptyTableProps){
+function EmptyTable({ columns }: EmptyTableProps) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -323,11 +330,7 @@ function EmptyTable({ columns }: EmptyTableProps){
       </div>
 
       {/* Tabla en estado de carga */}
-      <Table
-        columns={columns}
-        data={[]}
-        loading={true}
-      />
+      <DataTable data={[]} />
     </div>
   );
 }
