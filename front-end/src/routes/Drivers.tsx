@@ -4,38 +4,40 @@ import { Plus, UserCheck, UserX } from "lucide-react";
 import type { Driver } from "../types/index";
 import { apiService } from "../services/api";
 import { DataTable } from "../components/data-table";
+import type { GenericColumn } from "../components/data-table";
 import { Modal } from "../components/Modal";
 import { DriverForm } from "../components/forms/driversForms";
 
 /**
- * Interfaz para las propiedades de las columnas de la tabla
+ * Configuración de la ruta para la página de conductores
  */
-interface TableColumn {
-  key: string;
-  label: string;
-  render?: (value: any) => React.ReactNode;
-}
+export const Route = createFileRoute("/Drivers")({
+  component: Drivers,
+  loader: async () => {
+    const response = await apiService.get<Driver[]>("drivers");
+    // Si la respuesta es un array de arrays, tomar el primer elemento
+    return Array.isArray(response) && Array.isArray(response[0])
+      ? response[0]
+      : response;
+  },
+  pendingComponent: () => <EmptyTable />,
+});
 
-/**
- * Propiedades para el componente EmptyTable
- */
-interface EmptyTableProps {
-  columns: TableColumn[];
-}
-
-/**
- * Definición de las columnas de la tabla de conductores
- */
-const columns: TableColumn[] = [
+// Define columns for the generic DataTable, including nested fields
+const driverColumns: GenericColumn<Driver>[] = [
   { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
   { key: "phone_number", label: "Phone" },
-  { key: "license_number", label: "License #" },
   {
-    key: "license_expiration",
+    key: "license.number",
+    label: "License #",
+    render: (_: any, row: Driver) => row.license?.number ?? "",
+  },
+  {
+    key: "license.license_expiration",
     label: "License Exp.",
-    render: (value: string) => new Date(value).toLocaleDateString(),
+    render: (_: any, row: Driver) => row.license?.license_expiration ? new Date(row.license.license_expiration).toLocaleDateString() : "",
   },
   {
     key: "is_active",
@@ -56,21 +58,6 @@ const columns: TableColumn[] = [
     ),
   },
 ];
-
-/**
- * Configuración de la ruta para la página de conductores
- */
-export const Route = createFileRoute("/Drivers")({
-  component: Drivers,
-  loader: async () => {
-    const response = await apiService.get<Driver[]>("drivers");
-    // Si la respuesta es un array de arrays, tomar el primer elemento
-    return Array.isArray(response) && Array.isArray(response[0])
-      ? response[0]
-      : response;
-  },
-  pendingComponent: () => <EmptyTable columns={columns} />,
-});
 
 /**
  * Componente principal para la gestión de conductores
@@ -271,8 +258,8 @@ export default function Drivers() {
       </div>
 
       {/* Tabla de conductores */}
-      <DataTable
-        columns={columns}
+      <DataTable<Driver>
+        columns={driverColumns}
         data={filteredDrivers}
         onEdit={handleEdit}
         onDelete={handleDelete}
@@ -301,7 +288,7 @@ export default function Drivers() {
  * @param {EmptyTableProps} props - Las propiedades del componente
  * @returns {JSX.Element} Componente de tabla vacía
  */
-function EmptyTable({ columns }: EmptyTableProps) {
+function EmptyTable() {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -330,7 +317,7 @@ function EmptyTable({ columns }: EmptyTableProps) {
       </div>
 
       {/* Tabla en estado de carga */}
-      <DataTable data={[]} />
+      <DataTable columns={driverColumns} data={[]} />
     </div>
   );
 }
