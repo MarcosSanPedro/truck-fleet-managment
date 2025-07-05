@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
 import type { Job } from '../types/index';
 import { apiService } from '../services/api';
-import { Table } from '../components/table';
+import { DataTable } from '../components/data-table';
 import { Modal } from '../components/Modal';
 import { JobForm } from '../components/forms/jobsForm';
 
@@ -84,6 +84,16 @@ export default function Jobs() {
       }
       setIsModalOpen(false);
       setEditingJob(undefined);
+    }
+  };
+
+  /**
+   * Wrapper to adapt form submission to expected type
+   */
+  const handleFormSubmit = (jobData: Partial<Omit<Job, 'id'>>) => {
+    // Only call handleSubmit if required fields are present
+    if (jobData.job_number && jobData.job_date && jobData.job_type && jobData.job_status && jobData.job_description && jobData.origin && jobData.destination) {
+      handleSubmit(jobData as Omit<Job, 'id'>);
     }
   };
 
@@ -184,7 +194,7 @@ export default function Jobs() {
         />
       </div>
 
-      <Table
+      <DataTable<Job>
         columns={columns}
         data={filteredJobs}
         onEdit={handleEdit}
@@ -200,7 +210,7 @@ export default function Jobs() {
       >
         <JobForm
           job={editingJob}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>

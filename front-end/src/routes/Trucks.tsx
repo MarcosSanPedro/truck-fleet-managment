@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Truck as TruckIcon } from 'lucide-react';
 import type { Truck } from '../types/index';
 import { apiService } from '../services/api';
-import { Table } from '../components/table';
+import { DataTable } from '../components/data-table';
 import { Modal } from '../components/Modal';
 import { TruckForm } from '../components/forms/trucksForm';
 
@@ -86,6 +86,16 @@ export default function Trucks() {
     }
   };
 
+  /**
+   * Wrapper to adapt form submission to expected type
+   */
+  const handleFormSubmit = (truckData: Partial<Truck>) => {
+    // Only call handleSubmit if required fields are present
+    if (truckData.make && truckData.model && truckData.year && truckData.plate) {
+      handleSubmit(truckData as Omit<Truck, 'id'>);
+    }
+  };
+
   const filteredTrucks = trucks.filter(truck =>
     `${truck.make} ${truck.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     truck.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -158,7 +168,7 @@ export default function Trucks() {
         />
       </div>
 
-      <Table
+      <DataTable<Truck>
         columns={columns}
         data={filteredTrucks}
         onEdit={handleEdit}
@@ -174,7 +184,7 @@ export default function Trucks() {
       >
         <TruckForm
           truck={editingTruck}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>

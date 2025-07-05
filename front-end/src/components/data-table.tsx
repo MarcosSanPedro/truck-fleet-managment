@@ -92,7 +92,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/ui/separator"; 
 import {
   Table,
   TableBody,
@@ -142,6 +142,7 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
       variant="ghost"
       size="icon"
       className="text-muted-foreground size-7 hover:bg-transparent"
+      data-drag-handle
     >
       <IconGripVertical className="text-muted-foreground size-3" />
       <span className="sr-only">Drag to reorder</span>
@@ -151,13 +152,10 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
 
 function DraggableRow<T extends { id: UniqueIdentifier }>({ row, columns, onEdit, onDelete, rowLinkConfig }: { row: T; columns: GenericColumn<T>[]; onEdit?: (row: T) => void; onDelete?: (row: T) => void; rowLinkConfig?: { to: string; paramKey: string } }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({ id: row.id });
-  return (
-    <TableRow
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-    >
+  
+  // Create the navigation link if rowLinkConfig is provided
+  const rowContent = (
+    <>
       <TableCell>
         <DragHandle id={row.id} />
       </TableCell>
@@ -176,7 +174,7 @@ function DraggableRow<T extends { id: UniqueIdentifier }>({ row, columns, onEdit
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon">
+              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon" data-dropdown>
                 <IconDotsVertical />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -191,6 +189,42 @@ function DraggableRow<T extends { id: UniqueIdentifier }>({ row, columns, onEdit
           </DropdownMenu>
         </TableCell>
       )}
+    </>
+  );
+
+  // If rowLinkConfig is provided, wrap the row in a Link
+  if (rowLinkConfig) {
+    const linkTo = `${rowLinkConfig.to}/${row.id}`;
+    return (
+      <TableRow
+        data-dragging={isDragging}
+        ref={setNodeRef}
+        className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-muted/50"
+        style={{ transform: CSS.Transform.toString(transform), transition }}
+        onClick={(e) => {
+          // Don't navigate if clicking on drag handle or dropdown menu
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-drag-handle]') || target.closest('[data-dropdown]')) {
+            return;
+          }
+          // Navigate to the detail page
+          window.location.href = linkTo;
+        }}
+      >
+        {rowContent}
+      </TableRow>
+    );
+  }
+
+  // Otherwise, render as a regular row
+  return (
+    <TableRow
+      data-dragging={isDragging}
+      ref={setNodeRef}
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      {rowContent}
     </TableRow>
   );
 }
