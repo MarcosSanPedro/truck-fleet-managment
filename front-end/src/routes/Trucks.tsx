@@ -107,6 +107,7 @@ export default function Trucks() {
     { 
       key: 'make', 
       label: 'Make/Model',
+      enableFiltering: true,
       render: (value: string, row: Truck) => (
         <div className="flex items-center">
           <TruckIcon size={16} className="mr-2 text-gray-500" />
@@ -115,7 +116,11 @@ export default function Trucks() {
       )
     },
     { key: 'year', label: 'Year' },
-    { key: 'color', label: 'Color' },
+    { 
+      key: 'color', 
+      label: 'Color',
+      enableFiltering: true
+    },
     { 
       key: 'mileage', 
       label: 'Mileage',
@@ -125,6 +130,7 @@ export default function Trucks() {
     { 
       key: 'assign_driver', 
       label: 'Assigned Driver',
+      enableFiltering: true,
       render: (value: string) => (
         <span className={value ? 'text-gray-900' : 'text-gray-400 italic'}>
           {value || 'Unassigned'}

@@ -1,80 +1,18 @@
 import * as React from "react";
 import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
-  IconTrendingUp,
+  IconFilter,
+  IconX,
 } from "@tabler/icons-react";
 
-import type {
-  Row,
-  SortingState,
-  VisibilityState,
-  ColumnDef,
-  ColumnFiltersState,
-} from "@tanstack/react-table";
-
-import {
-  flexRender,
-  useReactTable,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import { toast } from "sonner";
-import { z } from "zod";
-
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -83,16 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator"; 
 import {
   Table,
   TableBody,
@@ -101,18 +30,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "@tanstack/react-router";
-
-export const schema = z.object({
-  id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
-});
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "@tanstack/react-router";
 
 // Column definition for generic table
 export interface GenericColumn<T> {
@@ -121,51 +41,63 @@ export interface GenericColumn<T> {
   render?: (value: any, row: T) => React.ReactNode;
   enableSorting?: boolean;
   enableHiding?: boolean;
+  enableFiltering?: boolean; // New property to control filtering
 }
 
-interface DataTableProps<T extends { id: UniqueIdentifier }> {
+interface DataTableProps<T extends { id?: string | number }> {
   columns: GenericColumn<T>[];
   data: T[];
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  addRowAction?: {
+    onClick: () => void;
+    label: string;
+  };
   loading?: boolean;
   rowLinkConfig?: { to: string; paramKey: string };
 }
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: UniqueIdentifier }) {
-  const { attributes, listeners } = useSortable({ id });
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-      data-drag-handle
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
+function DataTableRow<T extends { id?: string | number }>({
+  row,
+  columns,
+  onEdit,
+  onDelete,
+  rowLinkConfig,
+}: {
+  row: T;
+  columns: GenericColumn<T>[];
+  onEdit?: (row: T) => void;
+  onDelete?: (row: T) => void;
+  rowLinkConfig?: { to: string; paramKey: string };
+}) {
+  const navigate = useNavigate();
 
-function DraggableRow<T extends { id: UniqueIdentifier }>({ row, columns, onEdit, onDelete, rowLinkConfig }: { row: T; columns: GenericColumn<T>[]; onEdit?: (row: T) => void; onDelete?: (row: T) => void; rowLinkConfig?: { to: string; paramKey: string } }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({ id: row.id });
-  
-  // Create the navigation link if rowLinkConfig is provided
-  const rowContent = (
-    <>
-      <TableCell>
-        <DragHandle id={row.id} />
-      </TableCell>
+  const handleRowClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on dropdown menu
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-dropdown]")) {
+      return;
+    }
+
+    // Navigate to the detail page
+    if (rowLinkConfig && row.id) {
+      const linkTo = `${rowLinkConfig.to}/${row.id}`;
+      navigate({ to: linkTo });
+    }
+  };
+
+  return (
+    <TableRow
+      className={rowLinkConfig ? "cursor-pointer hover:bg-muted/50" : ""}
+      onClick={rowLinkConfig ? handleRowClick : undefined}
+    >
       {columns.map((col) => (
         <TableCell key={col.key as string}>
           {col.render
             ? col.render(row[col.key as keyof T], row)
-            : (typeof row[col.key as keyof T] === "string" ||
-               typeof row[col.key as keyof T] === "number" ||
-               typeof row[col.key as keyof T] === "boolean")
+            : typeof row[col.key as keyof T] === "string" ||
+                typeof row[col.key as keyof T] === "number" ||
+                typeof row[col.key as keyof T] === "boolean"
               ? (row[col.key as keyof T] as React.ReactNode)
               : JSON.stringify(row[col.key as keyof T])}
         </TableCell>
@@ -174,100 +106,197 @@ function DraggableRow<T extends { id: UniqueIdentifier }>({ row, columns, onEdit
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon" data-dropdown>
+              <Button
+                variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon"
+                data-dropdown
+              >
                 <IconDotsVertical />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
-              {onEdit && <DropdownMenuItem onClick={() => onEdit(row)}>Edit</DropdownMenuItem>}
+              {onEdit && (
+                <DropdownMenuItem onClick={() => onEdit(row)}>
+                  Edit
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>Make a copy</DropdownMenuItem>
               <DropdownMenuItem>Favorite</DropdownMenuItem>
               <DropdownMenuSeparator />
-              {onDelete && <DropdownMenuItem variant="destructive" onClick={() => onDelete(row)}>Delete</DropdownMenuItem>}
+              {onDelete && (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => onDelete(row)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>
       )}
-    </>
-  );
-
-  // If rowLinkConfig is provided, wrap the row in a Link
-  if (rowLinkConfig) {
-    const linkTo = `${rowLinkConfig.to}/${row.id}`;
-    return (
-      <TableRow
-        data-dragging={isDragging}
-        ref={setNodeRef}
-        className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer hover:bg-muted/50"
-        style={{ transform: CSS.Transform.toString(transform), transition }}
-        onClick={(e) => {
-          // Don't navigate if clicking on drag handle or dropdown menu
-          const target = e.target as HTMLElement;
-          if (target.closest('[data-drag-handle]') || target.closest('[data-dropdown]')) {
-            return;
-          }
-          // Navigate to the detail page
-          window.location.href = linkTo;
-        }}
-      >
-        {rowContent}
-      </TableRow>
-    );
-  }
-
-  // Otherwise, render as a regular row
-  return (
-    <TableRow
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-    >
-      {rowContent}
     </TableRow>
   );
 }
 
-export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: initialData, onEdit, onDelete, loading, rowLinkConfig }: DataTableProps<T>) {
-  const [data, setData] = React.useState<T[]>(() => initialData);
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
-  const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({});
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
-  const sortableId = React.useId();
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
-  const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data]);
+// Filter component for a single column
+function ColumnFilter<T extends { id?: string | number }>({
+  column,
+  data,
+  filters,
+  setFilters,
+}: {
+  column: GenericColumn<T>;
+  data: T[];
+  filters: Record<string, string[]>;
+  setFilters: (filters: Record<string, string[]>) => void;
+}) {
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [isOpen, setIsOpen] = React.useState(false);
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
+  // Get unique values for this column
+  const uniqueValues = React.useMemo(() => {
+    const values = new Set<string>();
+    data.forEach((row) => {
+      const value = row[column.key as keyof T];
+      if (value !== null && value !== undefined) {
+        values.add(String(value));
+      }
+    });
+    return Array.from(values).sort();
+  }, [data, column.key]);
+
+  // Skip if too many unique values or filtering is disabled
+  if (uniqueValues.length >= 20 || column.enableFiltering === false) {
+    return null;
   }
+
+  const currentFilters = filters[column.key as string] || [];
+  const filteredValues = uniqueValues.filter((value) =>
+    value.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleToggleFilter = (value: string) => {
+    const newFilters = { ...filters };
+    if (currentFilters.includes(value)) {
+      newFilters[column.key as string] = currentFilters.filter(
+        (v) => v !== value
+      );
+    } else {
+      newFilters[column.key as string] = [...currentFilters, value];
+    }
+    setFilters(newFilters);
+  };
+
+  const clearFilters = () => {
+    const newFilters = { ...filters };
+    delete newFilters[column.key as string];
+    setFilters(newFilters);
+  };
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8">
+          <IconFilter className="h-4 w-4 mr-1" />
+          {column.label}
+          {currentFilters.length > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 text-xs">
+              {currentFilters.length}
+            </Badge>
+          )}
+          <IconChevronDown className="h-4 w-4 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="">
+        <div className="p-2">
+          <Input
+            placeholder={`Search ${column.label.toLowerCase()}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-8"
+          />
+        </div>
+        <DropdownMenuSeparator />
+        <div className="max-h-60 overflow-y-auto">
+          {filteredValues.map((value) => (
+            <DropdownMenuCheckboxItem
+              key={value}
+              checked={currentFilters.includes(value)}
+              onCheckedChange={() => handleToggleFilter(value)}
+            >
+              {value}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </div>
+        {currentFilters.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={clearFilters} className="text-red-600">
+              <IconX className="h-4 w-4 mr-2" />
+              Clear filters
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function DataTable<T extends { id?: string | number }>({
+  columns,
+  data: initialData,
+  onEdit,
+  onDelete,
+  addRowAction,
+  loading,
+  rowLinkConfig,
+}: DataTableProps<T>) {
+  const [data, setData] = React.useState<T[]>(() => initialData);
+  const [columnVisibility, setColumnVisibility] = React.useState<
+    Record<string, boolean>
+  >({});
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [filters, setFilters] = React.useState<Record<string, string[]>>({});
+
+  // Apply filters to data
+  const filteredData = React.useMemo(() => {
+    return data.filter((row) => {
+      return Object.entries(filters).every(([columnKey, filterValues]) => {
+        if (filterValues.length === 0) return true;
+        const value = String(row[columnKey as keyof T]);
+        return filterValues.includes(value);
+      });
+    });
+  }, [data, filters]);
 
   // Pagination logic
   const paginatedData = React.useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize;
-    return data.slice(start, start + pagination.pageSize);
-  }, [data, pagination]);
+    return filteredData.slice(start, start + pagination.pageSize);
+  }, [filteredData, pagination]);
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [filters]);
 
   if (loading) {
     return <div className="p-8 text-center">Loading...</div>;
   }
 
   return (
-    <div className="w-full flex-col justify-start gap-6">
+    <div className="w-full flex-col gap-6 rounded-lg h-full flex flex-grow bg-white py-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
-        <Label htmlFor="view-selector" className="sr-only">View</Label>
-        
+        <Label htmlFor="view-selector" className="sr-only">
+          View
+        </Label>
+
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -285,7 +314,10 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
                   className="capitalize"
                   checked={columnVisibility[column.key as string] !== false}
                   onCheckedChange={(value) =>
-                    setColumnVisibility((prev) => ({ ...prev, [column.key as string]: !!value }))
+                    setColumnVisibility((prev) => ({
+                      ...prev,
+                      [column.key as string]: !!value,
+                    }))
                   }
                 >
                   {column.label}
@@ -293,65 +325,73 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={addRowAction?.onClick}>
             <IconPlus />
-            <span className="hidden lg:inline">Add Row</span>
+            <span className="hidden lg:inline">{addRowAction?.label}</span>
           </Button>
         </div>
       </div>
-      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-        <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                <TableRow>
-                  <TableHead></TableHead>
-                  {columns.map((col) =>
-                    columnVisibility[col.key as string] !== false ? (
-                      <TableHead key={col.key as string}>{col.label}</TableHead>
-                    ) : null
-                  )}
-                  {(onEdit || onDelete) && <TableHead>Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.length ? (
-                  <SortableContext items={paginatedData.map((row) => row.id)} strategy={verticalListSortingStrategy}>
-                    {paginatedData.map((row) => (
-                      <DraggableRow
-                        key={row.id}
-                        row={row}
-                        columns={columns.filter((col) => columnVisibility[col.key as string] !== false)}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        rowLinkConfig={rowLinkConfig}
+
+      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6 flex-grow">
+        <div className="overflow-hidden rounded-lg border flex-grow">
+          <Table className="flex-grow h-full">
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              <TableRow>
+                {columns.map((col) =>
+                  columnVisibility[col.key as string] !== false ? (
+                    <TableHead key={col.key as string} className="align-middle">
+                      {/* Filter dropdown in header */}
+                      <ColumnFilter
+                        column={col}
+                        data={data}
+                        filters={filters}
+                        setFilters={setFilters}
                       />
-                    ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length + 2} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
+                    </TableHead>
+                  ) : null
                 )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                {(onEdit || onDelete) && <TableHead>Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.length ? (
+                paginatedData.map((row) => (
+                  <DataTableRow
+                    key={row.id}
+                    row={row}
+                    columns={columns.filter(
+                      (col) => columnVisibility[col.key as string] !== false
+                    )}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    rowLinkConfig={rowLinkConfig}
+                  />
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length + 1}
+                    className="h-24 text-center"
+                  >
+                    {Object.keys(filters).length > 0
+                      ? "No results match your filters."
+                      : "No results."}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {/* Selection count can be added here if selection is implemented */}
+            Showing {paginatedData.length} of {filteredData.length} results
+            {Object.keys(filters).length > 0 &&
+              ` (filtered from ${data.length} total)`}
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {pagination.pageIndex + 1} of {Math.ceil(data.length / pagination.pageSize)}
+            <div className="flex w-fit items-center justify-center text-sm font-medium ">
+              Page {pagination.pageIndex + 1} of{" "}
+              {Math.ceil(filteredData.length / pagination.pageSize)}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
@@ -367,7 +407,12 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
                 variant="outline"
                 className="size-8"
                 size="icon"
-                onClick={() => setPagination((p) => ({ ...p, pageIndex: Math.max(0, p.pageIndex - 1) }))}
+                onClick={() =>
+                  setPagination((p) => ({
+                    ...p,
+                    pageIndex: Math.max(0, p.pageIndex - 1),
+                  }))
+                }
                 disabled={pagination.pageIndex === 0}
               >
                 <span className="sr-only">Go to previous page</span>
@@ -377,8 +422,19 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
                 variant="outline"
                 className="size-8"
                 size="icon"
-                onClick={() => setPagination((p) => ({ ...p, pageIndex: Math.min(Math.ceil(data.length / pagination.pageSize) - 1, p.pageIndex + 1) }))}
-                disabled={pagination.pageIndex >= Math.ceil(data.length / pagination.pageSize) - 1}
+                onClick={() =>
+                  setPagination((p) => ({
+                    ...p,
+                    pageIndex: Math.min(
+                      Math.ceil(filteredData.length / pagination.pageSize) - 1,
+                      p.pageIndex + 1
+                    ),
+                  }))
+                }
+                disabled={
+                  pagination.pageIndex >=
+                  Math.ceil(filteredData.length / pagination.pageSize) - 1
+                }
               >
                 <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
@@ -387,8 +443,17 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
                 variant="outline"
                 className="hidden size-8 lg:flex"
                 size="icon"
-                onClick={() => setPagination((p) => ({ ...p, pageIndex: Math.ceil(data.length / pagination.pageSize) - 1 }))}
-                disabled={pagination.pageIndex >= Math.ceil(data.length / pagination.pageSize) - 1}
+                onClick={() =>
+                  setPagination((p) => ({
+                    ...p,
+                    pageIndex:
+                      Math.ceil(filteredData.length / pagination.pageSize) - 1,
+                  }))
+                }
+                disabled={
+                  pagination.pageIndex >=
+                  Math.ceil(filteredData.length / pagination.pageSize) - 1
+                }
               >
                 <span className="sr-only">Go to last page</span>
                 <IconChevronsRight />
@@ -396,186 +461,21 @@ export function DataTable<T extends { id: UniqueIdentifier }>({ columns, data: i
             </div>
           </div>
         </div>
+        {/* Clear all filters button, if any filter is active */}
+        {Object.keys(filters).length > 0 && (
+          <div className="flex justify-end px-4 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFilters({})}
+              className="h-8 text-red-600 hover:text-red-700"
+            >
+              <IconX className="h-4 w-4 mr-1" />
+              Clear all filters
+            </Button>
+          </div>
+        )}
       </div>
     </div>
-  );
-}
-
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
-
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
-  const isMobile = useIsMobile();
-
-  return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
-      <DrawerTrigger asChild>
-        <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.header}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.header}</DrawerTitle>
-          <DrawerDescription>
-            Showing total visitors for the last 6 months
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {!isMobile && (
-            <>
-              <ChartContainer config={chartConfig}>
-                <AreaChart
-                  accessibilityLayer
-                  data={chartData}
-                  margin={{
-                    left: 0,
-                    right: 10,
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                    hide
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <Area
-                    dataKey="mobile"
-                    type="natural"
-                    fill="var(--color-mobile)"
-                    fillOpacity={0.6}
-                    stroke="var(--color-mobile)"
-                    stackId="a"
-                  />
-                  <Area
-                    dataKey="desktop"
-                    type="natural"
-                    fill="var(--color-desktop)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-desktop)"
-                    stackId="a"
-                  />
-                </AreaChart>
-              </ChartContainer>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="flex gap-2 leading-none font-medium">
-                  Trending up by 5.2% this month{" "}
-                  <IconTrendingUp className="size-4" />
-                </div>
-                <div className="text-muted-foreground">
-                  Showing total visitors for the last 6 months. This is just
-                  some random text to test the layout. It spans multiple lines
-                  and should wrap around.
-                </div>
-              </div>
-              <Separator />
-            </>
-          )}
-          <form className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.header} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
-                <Select defaultValue={item.type}>
-                  <SelectTrigger id="type" className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Table of Contents">
-                      Table of Contents
-                    </SelectItem>
-                    <SelectItem value="Executive Summary">
-                      Executive Summary
-                    </SelectItem>
-                    <SelectItem value="Technical Approach">
-                      Technical Approach
-                    </SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Capabilities">Capabilities</SelectItem>
-                    <SelectItem value="Focus Documents">
-                      Focus Documents
-                    </SelectItem>
-                    <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover Page">Cover Page</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue={item.status}>
-                  <SelectTrigger id="status" className="w-full">
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Done">Done</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Not Started">Not Started</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="target">Target</Label>
-                <Input id="target" defaultValue={item.target} />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="limit">Limit</Label>
-                <Input id="limit" defaultValue={item.limit} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
-              <Select defaultValue={item.reviewer}>
-                <SelectTrigger id="reviewer" className="w-full">
-                  <SelectValue placeholder="Select a reviewer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                  <SelectItem value="Jamik Tashpulatov">
-                    Jamik Tashpulatov
-                  </SelectItem>
-                  <SelectItem value="Emily Whalen">Emily Whalen</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </form>
-        </div>
-        <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
   );
 }

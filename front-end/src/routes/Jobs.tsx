@@ -143,6 +143,7 @@ export default function Jobs() {
     { 
       key: 'job_type', 
       label: 'Type',
+      enableFiltering: true,
       render: (value: string) => (
         <span className="capitalize">{value.replace('_', ' ')}</span>
       )
@@ -159,6 +160,7 @@ export default function Jobs() {
     { 
       key: 'job_status', 
       label: 'Status',
+      enableFiltering: true,
       render: (value: string) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(value)}`}>
           <span className="mr-1">{getStatusIcon(value)}</span>

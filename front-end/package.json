@@ -6,7 +6,7 @@
   "main": "src/index.html",
   "module": "src/index.html",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3000 --host",
     "start": "NODE_ENV=production bun src/index.html",
     "build": "bun run build.ts"
   },

@@ -37,11 +37,15 @@ const driverColumns: GenericColumn<Driver>[] = [
   {
     key: "license.license_expiration",
     label: "License Exp.",
-    render: (_: any, row: Driver) => row.license?.license_expiration ? new Date(row.license.license_expiration).toLocaleDateString() : "",
+    render: (_: any, row: Driver) =>
+      row.license?.license_expiration
+        ? new Date(row.license.license_expiration).toLocaleDateString()
+        : "",
   },
   {
     key: "is_active",
     label: "Status",
+    enableFiltering: true,
     render: (value: boolean) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -215,22 +219,9 @@ export default function Drivers() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full flex-grow flex flex-col">
       {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Drivers</h1>
-          <p className="text-gray-600">Manage your fleet drivers</p>
-        </div>
-        <button
-          onClick={handleCreate}
-          disabled={isLoading}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus size={16} className="mr-2" />
-          Add Driver
-        </button>
-      </div>
+        <label className="text-2xl font-bold text-gray-900 mx-auto">Manage your fleet drivers</label>
 
       {/* Mensaje de error */}
       {error && (
@@ -247,7 +238,7 @@ export default function Drivers() {
       )}
 
       {/* Barra de búsqueda */}
-      <div className="max-w-md">
+      {/* <div className="max-w-md">
         <input
           type="text"
           placeholder="Search drivers..."
@@ -255,17 +246,21 @@ export default function Drivers() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-      </div>
+      </div> */}
 
       {/* Tabla de conductores */}
-      <DataTable<Driver>
-        columns={driverColumns}
-        data={filteredDrivers}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        loading={isLoading}
-        rowLinkConfig={{ to: "/drivers/$driverId", paramKey: "driverId" }}
-      />
+        <DataTable<Driver>
+          columns={driverColumns}
+          data={filteredDrivers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          loading={isLoading}
+          addRowAction={{
+            onClick: handleCreate,
+            label: "Add Driver",
+          }}
+          rowLinkConfig={{ to: "/drivers", paramKey: "driverId" }}
+        />
 
       {/* Modal para agregar/editar conductor */}
       <Modal
