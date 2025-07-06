@@ -54,147 +54,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  DataTableConstructor,
+  type DataTableConstructorData,
+} from "@/lib/data-constructor/constructor";
+import type {
+  DataTableRowProps,
+  GenericColumn,
+  DataTableProps,
+  PaginationState,
+  SortingState,
+  FilterState,
+  RowSelectionState,
+} from "./data-table-types";
 
-/**
- * Supported data types for filtering and sorting
- */
-type DataType = "string" | "number" | "boolean" | "date";
+import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-types";
 
-/**
- * Sort direction enum
- */
-type SortDirection = "asc" | "desc" | null;
-
-/**
- * Column definition for the generic data table
- */
-export interface GenericColumn<T> {
-  /** Unique key for the column, should match a property key in T */
-  key: keyof T | string;
-  /** Display label for the column header */
-  label: string;
-  /** Custom render function for cell content */
-  render?: (value: any, row: T) => React.ReactNode;
-  /** Enable sorting for this column */
-  enableSorting?: boolean;
-  /** Enable hiding/showing this column */
-  enableHiding?: boolean;
-  /** Enable filtering for this column */
-  enableFiltering?: boolean;
-  /** Data type for proper filtering and sorting */
-  dataType?: DataType;
-  /** Minimum width for the column */
-  minWidth?: number;
-  /** Whether this column should be sticky (left or right) */
-  sticky?: "left" | "right";
-}
-
-/**
- * Pagination state interface
- */
-interface PaginationState {
-  pageIndex: number;
-  pageSize: number;
-}
-
-/**
- * Sorting state interface
- */
-interface SortingState {
-  columnKey: string;
-  direction: SortDirection;
-}
-
-/**
- * Filter state for different data types
- */
-interface FilterState {
-  [columnKey: string]: {
-    type: DataType;
-    values: string[];
-    searchTerm?: string;
-    dateRange?: { from: Date | null; to: Date | null };
-    numberRange?: { min: number | null; max: number | null };
-  };
-}
-
-/**
- * Row selection state
- */
-interface RowSelectionState {
-  [rowId: string]: boolean;
-}
-
-/**
- * Bulk action definition
- */
-interface BulkAction<T> {
-  label: string;
-  icon?: React.ReactNode;
-  onClick: (selectedRows: T[]) => void;
-  variant?: "default" | "destructive";
-}
-
-/**
- * Props for the DataTable component
- */
-interface DataTableProps<T extends { id?: string | number }> {
-  /** Column definitions */
-  columns: GenericColumn<T>[];
-  /** Table data */
-  data: T[];
-  /** Edit row callback */
-  onEdit?: (row: T) => void;
-  /** Delete row callback */
-  onDelete?: (row: T) => void;
-  /** Add row action configuration */
-  addRowAction?: {
-    onClick: () => void;
-    label: string;
-  };
-  /** Loading state */
-  loading?: boolean;
-  /** Row link configuration for navigation */
-  rowLinkConfig?: { to: string; paramKey: string };
-  /** Enable row selection */
-  enableRowSelection?: boolean;
-  /** Bulk actions for selected rows */
-  bulkActions?: BulkAction<T>[];
-  /** Enable export functionality */
-  enableExport?: boolean;
-  /** Custom export function */
-  onExport?: (data: T[], selectedRows: T[]) => void;
-  /** Default page size */
-  defaultPageSize?: number;
-  /** Available page sizes */
-  pageSizeOptions?: number[];
-  /** Enable global search */
-  enableGlobalSearch?: boolean;
-  /** Custom search function */
-  searchFunction?: (data: T[], searchTerm: string) => T[];
-}
-
-/**
- * Page size options for pagination
- */
-const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-
-/**
- * Individual table row component with optimized rendering
- */
-interface DataTableRowProps<T extends { id?: string | number }> {
-  row: T;
-  columns: GenericColumn<T>[];
-  onEdit?: (row: T) => void;
-  onDelete?: (row: T) => void;
-  rowLinkConfig?: { to: string; paramKey: string };
-  isSelected?: boolean;
-  onRowSelect?: (rowId: string, selected: boolean) => void;
-  enableRowSelection?: boolean;
-}
-
-function DataTableRowInner<T extends { id?: string | number }>(props: DataTableRowProps<T>) {
-  const { row, columns, onEdit, onDelete, rowLinkConfig, isSelected, onRowSelect, enableRowSelection } = props;
+function DataTableRowInner<T extends { id?: string | number }>(
+  props: DataTableRowProps<T>
+) {
+  const {
+    row,
+    columns,
+    onEdit,
+    onDelete,
+    rowLinkConfig,
+    isSelected,
+    onRowSelect,
+    enableRowSelection,
+  } = props;
   const navigate = useNavigate();
 
   const handleRowClick = (e: React.MouseEvent) => {
@@ -215,6 +103,62 @@ function DataTableRowInner<T extends { id?: string | number }>(props: DataTableR
     if (onRowSelect && row.id) {
       onRowSelect(String(row.id), checked);
     }
+  };
+
+  /**
+   * Render cell value with proper formatting based on data type
+   */
+  const renderCellValue = (column: GenericColumn<T>, value: any) => {
+    // Use custom render function if provided
+    if (column.render) {
+      return column.render(value, row);
+    }
+
+    // Handle different data types
+    if (column.dataType === "boolean") {
+      const boolStr = String(value).toLowerCase();
+      const isTrue = boolStr === "true" || boolStr === "1" || boolStr === "yes";
+      return (
+        <Badge variant={isTrue ? "default" : "secondary"}>
+          {isTrue ? "Yes" : "No"}
+        </Badge>
+      );
+    }
+
+    if (column.dataType === "date" && value) {
+      const date = value instanceof Date ? value : new Date(value);
+      return date.toLocaleDateString();
+    }
+
+    if (column.dataType === "email" && value) {
+      return (
+        <a href={`mailto:${value}`} className="text-blue-600 hover:underline">
+          {value}
+        </a>
+      );
+    }
+
+    if (column.dataType === "phone" && value) {
+      return (
+        <a href={`tel:${value}`} className="text-blue-600 hover:underline">
+          {value}
+        </a>
+      );
+    }
+
+    if (column.dataType === "number" && typeof value === "number") {
+      return value.toLocaleString();
+    }
+
+    if (column.dataType === "array" && Array.isArray(value)) {
+      return value.join(", ");
+    }
+
+    if (column.dataType === "object" && typeof value === "object") {
+      return JSON.stringify(value);
+    }
+
+    return String(value || "");
   };
 
   return (
@@ -245,20 +189,7 @@ function DataTableRowInner<T extends { id?: string | number }>(props: DataTableR
           }
           style={{ minWidth: col.minWidth }}
         >
-          {col.render ? (
-            col.render(row[col.key as keyof T], row)
-          ) : typeof row[col.key as keyof T] === "boolean" ? (
-            <Badge
-              variant={row[col.key as keyof T] ? "default" : "secondary"}
-            >
-              {row[col.key as keyof T] ? "Yes" : "No"}
-            </Badge>
-          ) : typeof row[col.key as keyof T] === "string" ||
-            typeof row[col.key as keyof T] === "number" ? (
-            (row[col.key as keyof T] as React.ReactNode)
-          ) : (
-            JSON.stringify(row[col.key as keyof T])
-          )}
+          {renderCellValue(col, row[col.key as keyof T])}
         </TableCell>
       ))}
       {(onEdit || onDelete) && (
@@ -324,10 +255,15 @@ function ColumnFilter<T extends { id?: string | number }>({
   setFilters,
 }: {
   column: GenericColumn<T>;
-  data: T[];
+  data: DataTableConstructorData<T>;
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
 }) {
+  // Defensive programming: ensure data is properly structured
+  if (!data || !data.data || !Array.isArray(data.data)) {
+    console.warn("ColumnFilter: Invalid data structure", data);
+    return <span className="font-medium">{column.label}</span>;
+  }
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -335,28 +271,58 @@ function ColumnFilter<T extends { id?: string | number }>({
   const columnKey = column.key as string;
   const currentFilter = filters[columnKey];
 
-  /**
-   * Get unique values for the column
-   */
+  // Get unique values for filtering
   const uniqueValues = React.useMemo(() => {
+    // Ensure columns object exists
+    if (!data.columns || typeof data.columns !== 'object') {
+      console.warn("ColumnFilter: Invalid columns structure", data.columns);
+      return [];
+    }
+    
+    const columnConfig = data.columns[columnKey];
+    if (columnConfig?.filterConfig?.getUniques) {
+      // uniqueItems should already be strings from the constructor
+      return columnConfig.uniqueItems || [];
+    }
+    // Fallback: get unique values from data
     const values = new Set<string>();
-    data.forEach((row) => {
-      const value = row[column.key as keyof T];
+    data.data.forEach((row) => {
+      const value = row[columnKey as keyof T];
       if (value !== null && value !== undefined) {
-        values.add(String(value));
+        if (dataType === "boolean") {
+          const boolStr = String(value).toLowerCase();
+          if (boolStr === "true" || boolStr === "1" || boolStr === "yes") {
+            values.add("true");
+          } else if (boolStr === "false" || boolStr === "0" || boolStr === "no") {
+            values.add("false");
+          }
+        } else {
+          values.add(String(value));
+        }
       }
     });
     return Array.from(values).sort();
-  }, [data, column.key]);
+  }, [data, columnKey, dataType]);
 
-  // Skip filtering for columns with too many unique values or disabled filtering
-  if (uniqueValues.length >= 50 || column.enableFiltering === false) {
-    return <span className="font-medium">{column.label}</span>;
+  let filteredValues: any[] = [];
+  // Ensure columns object exists
+  if (data.columns && typeof data.columns === 'object') {
+    const columnConfig = data.columns[columnKey];
+    if (columnConfig?.filterConfig?.getUniques) {
+      filteredValues = columnConfig.uniqueItems?.filter((value) =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      ) || [];
+    } else {
+      filteredValues = uniqueValues.filter((value) =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+  } else {
+    // Fallback to unique values if columns structure is invalid
+    filteredValues = uniqueValues.filter((value) =>
+      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }
-
-  const filteredValues = uniqueValues.filter((value) =>
-    value.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   /**
    * Handle filter value toggle for multiselect
@@ -472,7 +438,7 @@ function ColumnFilter<T extends { id?: string | number }>({
 }
 
 /**
- * Main DataTable component with full feature set
+ * Main DataTable component with full feature set and constructor integration
  */
 export function DataTable<T extends { id?: string | number }>({
   columns,
@@ -490,6 +456,8 @@ export function DataTable<T extends { id?: string | number }>({
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   enableGlobalSearch = true,
   searchFunction,
+  dataConstructorConfig = {},
+  autoGenerateColumns = false,
 }: DataTableProps<T>) {
   // State management
   const [data] = React.useState<T[]>(() => initialData);
@@ -507,6 +475,36 @@ export function DataTable<T extends { id?: string | number }>({
   });
   const [globalSearch, setGlobalSearch] = React.useState("");
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+
+  // Initialize constructor
+  const constructor = React.useMemo(() => {
+    try {
+      return new DataTableConstructor<T>(data, dataConstructorConfig);
+    } catch (error) {
+      console.error("Error initializing DataTableConstructor:", error);
+      // Return a minimal constructor instance with proper typing
+      return new DataTableConstructor<T>([], {});
+    }
+  }, [data, dataConstructorConfig]);
+
+  // Auto-generate columns if requested
+  const finalColumns = React.useMemo(() => {
+    if (autoGenerateColumns && columns.length === 0) {
+      return constructor.getDataTableColumns().map((col) => ({
+        key: col.key,
+        label: col.label,
+        dataType: col.dataType as any,
+        enableSorting: col.sortable,
+        enableFiltering: col.filterable,
+        enableHiding: true,
+        minWidth: col.minWidth,
+        sticky: col.sticky,
+        render: col.render,
+        constructorConfig: constructor.getColumnConfig(col.key),
+      }));
+    }
+    return columns;
+  }, [autoGenerateColumns, columns, constructor]);
 
   /**
    * Apply global search to data
@@ -544,6 +542,19 @@ export function DataTable<T extends { id?: string | number }>({
   const sortedData = React.useMemo(() => {
     if (!sorting.direction || !sorting.columnKey) return filteredData;
 
+    // Use constructor's sort function if available
+    const sortFunction = constructor?.getSortFunction(sorting.columnKey);
+    
+    if (sortFunction) {
+      return [...filteredData].sort((a, b) => {
+        const aValue = a[sorting.columnKey as keyof T];
+        const bValue = b[sorting.columnKey as keyof T];
+        const comparison = sortFunction(aValue, bValue);
+        return sorting.direction === "asc" ? comparison : -comparison;
+      });
+    }
+
+    // Fallback to default sorting logic
     return [...filteredData].sort((a, b) => {
       const aValue = a[sorting.columnKey as keyof T];
       const bValue = b[sorting.columnKey as keyof T];
@@ -560,7 +571,7 @@ export function DataTable<T extends { id?: string | number }>({
 
       return sorting.direction === "asc" ? comparison : -comparison;
     });
-  }, [filteredData, sorting]);
+  }, [filteredData, sorting, constructor]);
 
   /**
    * Apply pagination to data
@@ -581,6 +592,9 @@ export function DataTable<T extends { id?: string | number }>({
    * Handle column sorting
    */
   const handleSort = (columnKey: string) => {
+    const column = finalColumns.find((col) => col.key === columnKey);
+    if (column?.enableSorting === false) return;
+
     setSorting((prev) => {
       if (prev.columnKey !== columnKey) {
         return { columnKey, direction: "asc" };
@@ -626,9 +640,9 @@ export function DataTable<T extends { id?: string | number }>({
     } else {
       // Default CSV export
       const csvContent = [
-        columns.map((col) => col.label).join(","),
+        finalColumns.map((col) => col.label).join(","),
         ...sortedData.map((row) =>
-          columns
+          finalColumns
             .map((col) => {
               const value = row[col.key as keyof T];
               return typeof value === "string" ? `"${value}"` : String(value);
@@ -653,15 +667,13 @@ export function DataTable<T extends { id?: string | number }>({
   }, [filters, globalSearch]);
 
   // Visible columns
-  const visibleColumns = columns.filter(
+  const visibleColumns = finalColumns.filter(
     (col) => columnVisibility[col.key as string] !== false
   );
   const isAllSelected =
     paginatedData.length > 0 &&
     paginatedData.every((row) => row.id && rowSelection[String(row.id)]);
-  const isSomeSelected = paginatedData.some(
-    (row) => row.id && rowSelection[String(row.id)]
-  );
+ 
 
   if (loading) {
     return (
@@ -740,7 +752,7 @@ export function DataTable<T extends { id?: string | number }>({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {columns.map((column) => (
+              {finalColumns.map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.key as string}
                   className="capitalize"
@@ -794,7 +806,7 @@ export function DataTable<T extends { id?: string | number }>({
                     <div className="flex items-center gap-2">
                       <ColumnFilter
                         column={col}
-                        data={data}
+                        data={constructor.constructorData}
                         filters={filters}
                         setFilters={setFilters}
                       />

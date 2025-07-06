@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Plus, UserCheck, UserX } from "lucide-react";
 import type { Driver } from "../types/index";
 import { apiService } from "../services/api";
 import { DataTable } from "../components/data-table";
-import type { GenericColumn } from "../components/data-table";
+import type { GenericColumn } from "../components/data-table-types";
 import { Modal } from "../components/Modal";
 import { DriverForm } from "../components/forms/driversForms";
+import { DataTableConstructor } from "../lib/data-constructor/constructor";
 
 /**
  * Configuración de la ruta para la página de conductores
@@ -23,46 +24,6 @@ export const Route = createFileRoute("/Drivers")({
   pendingComponent: () => <EmptyTable />,
 });
 
-// Define columns for the generic DataTable, including nested fields
-const driverColumns: GenericColumn<Driver>[] = [
-  { key: "first_name", label: "First Name" },
-  { key: "last_name", label: "Last Name" },
-  { key: "email", label: "Email" },
-  { key: "phone_number", label: "Phone" },
-  {
-    key: "license.number",
-    label: "License #",
-    render: (_: any, row: Driver) => row.license?.number ?? "",
-  },
-  {
-    key: "license.license_expiration",
-    label: "License Exp.",
-    render: (_: any, row: Driver) =>
-      row.license?.license_expiration
-        ? new Date(row.license.license_expiration).toLocaleDateString()
-        : "",
-  },
-  {
-    key: "is_active",
-    label: "Status",
-    enableFiltering: true,
-    render: (value: boolean) => (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-        }`}
-      >
-        {value ? (
-          <UserCheck size={12} className="mr-1" />
-        ) : (
-          <UserX size={12} className="mr-1" />
-        )}
-        {value ? "Active" : "Inactive"}
-      </span>
-    ),
-  },
-];
-
 /**
  * Componente principal para la gestión de conductores
  * @returns {JSX.Element} Componente de gestión de conductores
@@ -77,6 +38,71 @@ export default function Drivers() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize constructor with custom column configurations
+  const [constructor] = useState(() => new DataTableConstructor<Driver>(drivers, {
+    autoDetectTypes: true,
+    columns: {
+      first_name: {
+        label: "First Name",
+        enableSorting: true,
+        enableFiltering: true,
+      },
+      last_name: {
+        label: "Last Name",
+        enableSorting: true,
+        enableFiltering: true,
+      },
+      email: {
+        label: "Email",
+        type: "email",
+        enableSorting: true,
+        enableFiltering: true,
+      },
+      phone_number: {
+        label: "Phone",
+        type: "phone",
+        enableSorting: false, // Phone numbers should not be sortable
+        enableFiltering: true,
+      },
+      "license.number": {
+        label: "License #",
+        enableSorting: true,
+        enableFiltering: true,
+        render: (_: any, row: Driver) => row.license?.number ?? "",
+      },
+      "license.license_expiration": {
+        label: "License Exp.",
+        type: "date",
+        enableSorting: true,
+        enableFiltering: true,
+        render: (_: any, row: Driver) =>
+          row.license?.license_expiration
+            ? new Date(row.license.license_expiration).toLocaleDateString()
+            : "",
+      },
+      is_active: {
+        label: "Status",
+        type: "boolean",
+        enableSorting: true,
+        enableFiltering: true,
+        render: (value: boolean) => (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {value ? (
+              <UserCheck size={12} className="mr-1" />
+            ) : (
+              <UserX size={12} className="mr-1" />
+            )}
+            {value ? "Active" : "Inactive"}
+          </span>
+        ),
+      },
+    },
+  }));
+
   /**
    * Sincroniza el estado local con los datos del loader cuando cambian
    */
@@ -89,6 +115,29 @@ export default function Drivers() {
       setDrivers(flatDrivers);
     }
   }, [initialDrivers]);
+
+  /**
+   * Update constructor when drivers data changes
+   */
+  useEffect(() => {
+    constructor.data = drivers;
+    constructor.autoGenTypes();
+  }, [drivers, constructor]);
+
+  // Convert constructor columns to GenericColumn format
+  const driverColumns: GenericColumn<Driver>[] = useMemo(() => {
+    return constructor.getDataTableColumns().map(col => ({
+      key: col.key,
+      label: col.label,
+      dataType: col.dataType as any,
+      enableSorting: col.sortable,
+      enableFiltering: col.filterable,
+      visible: col.visible,
+      minWidth: col.minWidth,
+      sticky: col.sticky,
+      render: col.render,
+    }));
+  }, [constructor]);
 
   /**
    * Maneja la creación de un nuevo conductor
@@ -260,6 +309,8 @@ export default function Drivers() {
             label: "Add Driver",
           }}
           rowLinkConfig={{ to: "/drivers", paramKey: "driverId" }}
+          dataConstructorConfig={constructor.config}
+          autoGenerateColumns={false}
         />
 
       {/* Modal para agregar/editar conductor */}
@@ -284,6 +335,17 @@ export default function Drivers() {
  * @returns {JSX.Element} Componente de tabla vacía
  */
 function EmptyTable() {
+  // Simple columns for empty state
+  const emptyColumns: GenericColumn<Driver>[] = [
+    { key: "first_name", label: "First Name" },
+    { key: "last_name", label: "Last Name" },
+    { key: "email", label: "Email" },
+    { key: "phone_number", label: "Phone" },
+    { key: "license.number", label: "License #" },
+    { key: "license.license_expiration", label: "License Exp." },
+    { key: "is_active", label: "Status" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -312,7 +374,7 @@ function EmptyTable() {
       </div>
 
       {/* Tabla en estado de carga */}
-      <DataTable columns={driverColumns} data={[]} />
+      <DataTable columns={emptyColumns} data={[]} />
     </div>
   );
 }
