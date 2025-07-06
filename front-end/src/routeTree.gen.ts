@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrucksRouteImport } from './routes/Trucks'
 import { Route as JobsRouteImport } from './routes/Jobs'
 import { Route as DriversRouteImport } from './routes/Drivers'
+import { Route as DataTestRouteImport } from './routes/DataTest'
+import { Route as AboutRouteImport } from './routes/About'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrucksTruckIdRouteImport } from './routes/trucks/$truckId'
 import { Route as JobsJobsIdRouteImport } from './routes/jobs/$jobsId'
@@ -30,6 +32,16 @@ const JobsRoute = JobsRouteImport.update({
 const DriversRoute = DriversRouteImport.update({
   id: '/Drivers',
   path: '/Drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataTestRoute = DataTestRouteImport.update({
+  id: '/DataTest',
+  path: '/DataTest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/About',
+  path: '/About',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,6 +67,8 @@ const DriversDriverIdRoute = DriversDriverIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/About': typeof AboutRoute
+  '/DataTest': typeof DataTestRoute
   '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
@@ -64,6 +78,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/About': typeof AboutRoute
+  '/DataTest': typeof DataTestRoute
   '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
@@ -74,6 +90,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/About': typeof AboutRoute
+  '/DataTest': typeof DataTestRoute
   '/Drivers': typeof DriversRoute
   '/Jobs': typeof JobsRoute
   '/Trucks': typeof TrucksRoute
@@ -85,6 +103,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/About'
+    | '/DataTest'
     | '/Drivers'
     | '/Jobs'
     | '/Trucks'
@@ -94,6 +114,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/About'
+    | '/DataTest'
     | '/Drivers'
     | '/Jobs'
     | '/Trucks'
@@ -103,6 +125,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/About'
+    | '/DataTest'
     | '/Drivers'
     | '/Jobs'
     | '/Trucks'
@@ -113,6 +137,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  DataTestRoute: typeof DataTestRoute
   DriversRoute: typeof DriversRoute
   JobsRoute: typeof JobsRoute
   TrucksRoute: typeof TrucksRoute
@@ -142,6 +168,20 @@ declare module '@tanstack/react-router' {
       path: '/Drivers'
       fullPath: '/Drivers'
       preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/DataTest': {
+      id: '/DataTest'
+      path: '/DataTest'
+      fullPath: '/DataTest'
+      preLoaderRoute: typeof DataTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/About': {
+      id: '/About'
+      path: '/About'
+      fullPath: '/About'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,6 +217,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  DataTestRoute: DataTestRoute,
   DriversRoute: DriversRoute,
   JobsRoute: JobsRoute,
   TrucksRoute: TrucksRoute,
