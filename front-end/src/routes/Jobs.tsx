@@ -48,8 +48,8 @@ export default function Jobs() {
       "driver",
       "vehicle",
       "estimatedValue",
-      "priority",
-      "job_status"
+      "job_status",
+      "estimatedDuration",
     ],
     columns: {
       job_number: {
@@ -341,9 +341,10 @@ export default function Jobs() {
           onClick: handleCreate,
           label: 'Add Job',
         }}
-        rowLinkConfig={{ to: '/jobs', paramKey: 'jobId' }}
+        rowLinkConfig={{ to: '/jobs', paramKey: 'jobsId' }}
         dataConstructorConfig={constructor.config}
         autoGenerateColumns={false}
+        from="/Jobs"
       />
 
       {/* Modal para agregar/editar trabajo */}

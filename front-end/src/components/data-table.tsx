@@ -57,6 +57,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   DataTableConstructor,
   type DataTableConstructorData,
+  type DataTableColumnType,
 } from "@/lib/data-constructor/constructor";
 import type {
   DataTableRowProps,
@@ -70,6 +71,39 @@ import type {
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-types";
 import { useEffect } from "react";
+
+/**
+ * Helper function to check if a value is an object (but not null, array, or primitive)
+ */
+const isObjectProperty = (value: any): boolean => {
+  return value !== null && 
+         typeof value === 'object' && 
+         !Array.isArray(value) && 
+         !(value instanceof Date) &&
+         !(value instanceof RegExp);
+};
+
+/**
+ * Helper function to check if a column should be excluded from visibility options
+ */
+const shouldExcludeFromVisibility = <T extends { id?: string | number }>(
+  column: { key: string; dataType?: string; enableHiding?: boolean }, 
+  sampleData: T[]
+): boolean => {
+  // If it's explicitly marked as not hideable, don't exclude it
+  if (column.enableHiding === false) return false;
+  
+  // Check if the property is an object by looking at sample data
+  if (sampleData.length > 0) {
+    const sampleValue = sampleData[0][column.key as keyof T];
+    return isObjectProperty(sampleValue);
+  }
+  
+  // If we have dataType info, use it
+  if (column.dataType === 'object') return true;
+  
+  return false;
+};
 
 function DataTableRowInner<T extends { id?: string | number }>(
   props: DataTableRowProps<T>
@@ -470,12 +504,13 @@ export function DataTable<T extends { id?: string | number }>({
   bulkActions = [],
   enableExport = false,
   onExport,
-  defaultPageSize = 10,
+  defaultPageSize = 18,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   enableGlobalSearch = true,
   searchFunction,
   dataConstructorConfig = {},
   autoGenerateColumns = false,
+  from = '/',
 }: DataTableProps<T>) {
   // State management
   const [data] = React.useState<T[]>(() => initialData);
@@ -483,7 +518,7 @@ export function DataTable<T extends { id?: string | number }>({
     Record<string, boolean>
   >({});
 
-  const search = useSearch({from: "/"})
+  const search = useSearch({ from: from as any });
 
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -520,21 +555,23 @@ export function DataTable<T extends { id?: string | number }>({
   // Auto-generate columns if requested
   const finalColumns = React.useMemo(() => {
     if (autoGenerateColumns && columns.length === 0) {
-      return constructor.getDataTableColumns().map((col) => ({
-        key: col.key,
-        label: col.label,
-        dataType: col.dataType as any,
-        enableSorting: col.sortable,
-        enableFiltering: col.filterable,
-        enableHiding: true,
-        minWidth: col.minWidth,
-        sticky: col.sticky,
-        render: col.render,
-        constructorConfig: constructor.getColumnConfig(col.key),
-      }));
+      return constructor.getDataTableColumns()
+        .filter(col => !shouldExcludeFromVisibility(col, data))
+        .map((col) => ({
+          key: col.key,
+          label: col.label,
+          dataType: col.dataType as DataTableColumnType,
+          enableSorting: col.sortable,
+          enableFiltering: col.filterable,
+          enableHiding: true,
+          minWidth: col.minWidth,
+          sticky: col.sticky,
+          render: col.render,
+          constructorConfig: constructor.getColumnConfig(col.key),
+        } as GenericColumn<T>));
     }
-    return columns;
-  }, [autoGenerateColumns, columns, constructor]);
+    return columns.filter(col => !shouldExcludeFromVisibility(col, data));
+  }, [autoGenerateColumns, columns, constructor, data]);
 
   /**
    * Apply global search to data
@@ -705,7 +742,7 @@ export function DataTable<T extends { id?: string | number }>({
     for (const key of Object.keys(search)) {
       const col = filterableColumns.find(col => col.key === key);
       if (!col) continue;
-      const value = search[key];
+      const value = (search as any)[key];
       if (value === undefined || value === null) continue;
       // If value is array, use as is; else wrap in array
       const values = Array.isArray(value) ? value.map(String) : [String(value)];
@@ -807,7 +844,9 @@ export function DataTable<T extends { id?: string | number }>({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {finalColumns.map((column) => (
+              {finalColumns
+                .filter(column => !shouldExcludeFromVisibility(column, data))
+                .map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.key as string}
                   className="capitalize"

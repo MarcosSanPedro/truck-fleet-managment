@@ -300,6 +300,7 @@ export default function Trucks() {
         rowLinkConfig={{ to: '/trucks', paramKey: 'truckId' }}
         dataConstructorConfig={constructor.config}
         autoGenerateColumns={false}
+        from="/Trucks"
       />
 
       {/* Modal para agregar/editar camión */}

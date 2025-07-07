@@ -311,6 +311,7 @@ export default function Drivers() {
           rowLinkConfig={{ to: "/drivers", paramKey: "driverId" }}
           dataConstructorConfig={constructor.config}
           autoGenerateColumns={false}
+          from="/Drivers"
         />
 
       {/* Modal para agregar/editar conductor */}

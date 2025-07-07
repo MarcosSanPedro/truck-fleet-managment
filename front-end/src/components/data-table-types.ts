@@ -123,6 +123,8 @@ export interface DataTableProps<T extends { id?: string | number }> {
   dataConstructorConfig?: DataTableConfig;
   /** Auto-generate columns from data */
   autoGenerateColumns?: boolean;
+  /** Route path for useSearch (e.g., '/Drivers', '/Trucks', '/Jobs') */
+  from?: string;
 }
 
 /**
