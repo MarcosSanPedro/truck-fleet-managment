@@ -1,6 +1,6 @@
 import { apiService } from "../services/api";
 import type { Driver, Job, Metric, Truck } from "../types/index";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Users,
@@ -17,6 +17,15 @@ import {
 } from "lucide-react";
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+
+// Add type definition for alerts
+type Alert = {
+  type: string;
+  count: number;
+  message: string;
+  to?: string;
+  search?: Record<string, any>;
+};
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -122,8 +131,8 @@ export default function Dashboard() {
   }, [drivers]);
 
   // Critical alerts
-  const criticalAlerts = useMemo(() => {
-    const alerts = [];
+  const criticalAlerts = useMemo((): Alert[] => {
+    const alerts: Alert[] = [];
 
     // License expiring soon
     const expiringLicenses = drivers.filter((d) => {
@@ -137,6 +146,10 @@ export default function Dashboard() {
         type: "license",
         count: expiringLicenses.length,
         message: `${expiringLicenses.length} driver license(s) expiring soon`,
+        to: "drivers",
+        search: {
+          id: expiringLicenses.map(d => d.id).filter((id): id is number => id !== undefined)
+        }
       });
     }
 
@@ -147,6 +160,10 @@ export default function Dashboard() {
         type: "mileage",
         count: highMileageTrucks.length,
         message: `${highMileageTrucks.length} truck(s) with high mileage`,
+        to: "trucks",
+        search: {
+          id: highMileageTrucks.map((d)=> d.id).filter((id): id is number => id !== undefined)
+        }
       });
     }
 
@@ -157,6 +174,7 @@ export default function Dashboard() {
         type: "cancelled",
         count: cancelledJobs,
         message: `${cancelledJobs} cancelled job(s) need attention`,
+        to: "jobs"
       });
     }
 
@@ -235,14 +253,20 @@ export default function Dashboard() {
               <h3 className="font-semibold text-red-800">Critical Alerts</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {criticalAlerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-3 rounded-lg border border-red-200"
-                >
-                  <p className="text-sm text-red-700">{alert.message}</p>
-                </div>
-              ))}
+              {criticalAlerts.map((alert, index) => {
+                const linkProps = {
+                  to: alert.to,
+                  ...(alert.search ? { search: alert.search } : {}),
+                  key: index,
+                  className: "bg-white p-3 rounded-lg border border-red-200"
+                };
+                
+                return (
+                  <Link {...linkProps as any}>
+                    <p className="text-sm text-red-700">{alert.message}</p>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

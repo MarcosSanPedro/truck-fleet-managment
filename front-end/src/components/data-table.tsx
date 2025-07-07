@@ -53,7 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   DataTableConstructor,
   type DataTableConstructorData,
@@ -443,6 +443,18 @@ function ColumnFilter<T extends { id?: string | number }>({
   );
 }
 
+// Helper to compare two FilterState objects
+function isSameFilters(a: FilterState, b: FilterState): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every(k =>
+    b[k] &&
+    a[k].type === b[k].type &&
+    JSON.stringify(a[k].values) === JSON.stringify(b[k].values)
+  );
+}
+
 /**
  * Main DataTable component with full feature set and constructor integration
  */
@@ -471,11 +483,13 @@ export function DataTable<T extends { id?: string | number }>({
     Record<string, boolean>
   >({});
 
+  const search = useSearch({from: "/"})
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: defaultPageSize,
   });
-  const [filters, setFilters] = React.useState<FilterState>({});
+  const [filters, setFilters] = React.useState<FilterState>({} as FilterState);
   const [sorting, setSorting] = React.useState<SortingState>({
     columnKey: "",
     direction: null,
@@ -681,6 +695,32 @@ export function DataTable<T extends { id?: string | number }>({
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [filters, globalSearch]);
+
+  // When search params change, update filters accordingly
+  React.useEffect(() => {
+    if (!search) return;
+    // Get all filterable columns
+    const filterableColumns = finalColumns.filter(col => col.enableFiltering !== false);
+    const newFilters: FilterState = {};
+    for (const key of Object.keys(search)) {
+      const col = filterableColumns.find(col => col.key === key);
+      if (!col) continue;
+      const value = search[key];
+      if (value === undefined || value === null) continue;
+      // If value is array, use as is; else wrap in array
+      const values = Array.isArray(value) ? value.map(String) : [String(value)];
+      newFilters[key] = {
+        type: col.dataType || "string",
+        values,
+      };
+    }
+    setFilters(prev => {
+      if (isSameFilters(prev as FilterState, newFilters)) {
+        return prev;
+      }
+      return newFilters;
+    });
+  }, [search, finalColumns]);
 
   // Visible columns
   const visibleColumns = finalColumns.filter(
