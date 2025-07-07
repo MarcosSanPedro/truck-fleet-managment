@@ -41,6 +41,13 @@ export default function Drivers() {
   // Initialize constructor with custom column configurations
   const [constructor] = useState(() => new DataTableConstructor<Driver>(drivers, {
     autoDetectTypes: true,
+    showColumns: [
+      "first_name",
+      "email",
+      "last_name",
+      "phone_number",
+      "is_active",
+    ],
     columns: {
       first_name: {
         label: "First Name",

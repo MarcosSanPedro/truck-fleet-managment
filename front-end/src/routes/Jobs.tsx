@@ -45,11 +45,9 @@ export default function Jobs() {
       "job_number",
       "job_date",
       "job_type",
-      "driver",
-      "vehicle",
+      "priority",
       "estimatedValue",
       "job_status",
-      "estimatedDuration",
     ],
     columns: {
       job_number: {

@@ -167,7 +167,7 @@ function DataTableRowInner<T extends { id?: string | number }>(
 
     if (column.dataType === "email" && value) {
       return (
-        <a href={`mailto:${value}`} className="text-blue-600 hover:underline">
+        <a href={`mailto:${value}`} className=" hover:underline">
           {value}
         </a>
       );
@@ -175,7 +175,7 @@ function DataTableRowInner<T extends { id?: string | number }>(
 
     if (column.dataType === "phone" && value) {
       return (
-        <a href={`tel:${value}`} className="text-blue-600 hover:underline">
+        <a href={`tel:${value}`} className="hover:underline">
           {value}
         </a>
       );
@@ -218,9 +218,9 @@ function DataTableRowInner<T extends { id?: string | number }>(
         <TableCell
           key={col.key as string}
           className={
-            col.sticky
-              ? `sticky ${col.sticky === "left" ? "left-0" : "right-0"} bg-background`
-              : ""
+            (col.sticky
+              ? `sticky ${col.sticky === "left" ? "left-0" : "right-0"} bg-background `
+              : "") + "text-center"
           }
           style={{ minWidth: col.minWidth }}
         >
@@ -243,7 +243,7 @@ function DataTableRowInner<T extends { id?: string | number }>(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(row)}>
+                <DropdownMenuItem onClick={() => onEdit(row)} data-dropdown>
                   <IconEdit className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
@@ -252,19 +252,17 @@ function DataTableRowInner<T extends { id?: string | number }>(
                 onClick={() =>
                   navigator.clipboard.writeText(JSON.stringify(row))
                 }
+                data-dropdown
               >
                 <IconCopy className="h-4 w-4 mr-2" />
                 Copy
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconStar className="h-4 w-4 mr-2" />
-                Favorite
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {onDelete && (
                 <DropdownMenuItem
                   onClick={() => onDelete(row)}
                   className="text-destructive focus:text-destructive"
+                  data-dropdown
                 >
                   <IconTrash className="h-4 w-4 mr-2" />
                   Delete
@@ -513,7 +511,7 @@ export function DataTable<T extends { id?: string | number }>({
   from = '/',
 }: DataTableProps<T>) {
   // State management
-  const [data] = React.useState<T[]>(() => initialData);
+  const data = initialData;
   const [columnVisibility, setColumnVisibility] = React.useState<
     Record<string, boolean>
   >({});
@@ -901,10 +899,11 @@ export function DataTable<T extends { id?: string | number }>({
                     key={col.key as string}
                     className={`
                       ${col.sticky ? `sticky ${col.sticky === "left" ? "left-0" : "right-0"} bg-muted/50` : ""}
+                      text-center
                     `}
                     style={{ minWidth: col.minWidth }}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 justify-center">
                       <ColumnFilter
                         column={col}
                         data={constructor.constructorData}

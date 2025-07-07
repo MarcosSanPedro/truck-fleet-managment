@@ -301,7 +301,7 @@ function ColumnFilter<T extends { id?: string | number }>({
   const dataType = config?.dataType || column.dataType;
   const columnKey = column.key as string;
   const currentFilter = filters[columnKey];
-  const booleanLabels = config?.booleanLabels || { true: "Yes", false: "No" };
+  const booleanLabels = config?.booleanLabels || { true: "active", false: "No" };
   const maxUniqueValues = config?.maxUniqueValues || 50;
 
   /**

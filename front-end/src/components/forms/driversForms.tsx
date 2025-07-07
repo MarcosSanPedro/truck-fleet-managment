@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import type { Driver } from "../../types/index";
 import { emptyDriver } from "../../lib/data";
+import { isEmailOrNot } from "../../lib/data-constructor/isEmail";
+import { isPhoneNumberOrNot } from "../../lib/data-constructor/isPhone";
 
 interface DriverFormProps {
   driver?: Driver;
@@ -14,6 +16,8 @@ export const DriverForm: React.FC<DriverFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = useState<Partial<Omit<Driver, "id">>>({});
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   useEffect(() => {
     if (driver) {
@@ -51,7 +55,7 @@ export const DriverForm: React.FC<DriverFormProps> = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type, checked, dataset } = e.target;
+    const { name, value, type, checked, dataset } = e.target as HTMLInputElement;
     const section = dataset.section;
     if (section) {
       setFormData((prev) => ({
@@ -61,11 +65,21 @@ export const DriverForm: React.FC<DriverFormProps> = ({
           [name]: type === "checkbox" ? checked : value,
         },
       }));
+      // Validate phone if in address section
+      if (section === "address" && name === "phone") {
+        setPhoneError(value && !isPhoneNumberOrNot(value) ? "Invalid phone number" : null);
+      }
     } else {
       setFormData((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       }));
+      if (name === "email") {
+        setEmailError(value && !isEmailOrNot(value) ? "Invalid email address" : null);
+      }
+      if (name === "phone_number") {
+        setPhoneError(value && !isPhoneNumberOrNot(value) ? "Invalid phone number" : null);
+      }
     }
   };
 
@@ -103,10 +117,12 @@ export const DriverForm: React.FC<DriverFormProps> = ({
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
             <input type="email" id="email" name="email" value={formData.email || ''} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. john.doe@email.com" />
+            {emailError && <div className="text-red-500 text-xs mt-1">{emailError}</div>}
           </div>
           <div>
             <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
             <input type="tel" id="phone_number" name="phone_number" value={formData.phone_number || ''} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. (555) 123-4567" />
+            {phoneError && <div className="text-red-500 text-xs mt-1">{phoneError}</div>}
           </div>
         </div>
         {formData.address && (
@@ -269,7 +285,7 @@ export const DriverForm: React.FC<DriverFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || !!emailError || !!phoneError}
           className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {driver ? 'Update' : 'Create'} Driver

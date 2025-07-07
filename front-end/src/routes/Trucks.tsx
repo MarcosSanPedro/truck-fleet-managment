@@ -40,7 +40,15 @@ export default function Trucks() {
 
   // Initialize constructor with custom column configurations
   const [constructor] = useState(() => new DataTableConstructor<Truck>(trucks, {
-    autoDetectTypes: true,
+    autoDetectTypes: true,showColumns: [
+      "make",
+      "nextschedule",
+      "year",
+      "color",
+      "mileage",
+      "vin",
+      "plate",
+    ],
     columns: {
       make: {
         label: 'Make/Model',
