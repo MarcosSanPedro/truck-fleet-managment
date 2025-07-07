@@ -76,6 +76,12 @@ export default function Dashboard() {
     return metric ? metric.value : 0;
   };
 
+  // Helper: get IDs for filtered sets
+  const activeJobIds = jobs.filter(j => j.job_status === "in-progress").map(j => j.id);
+  const cancelledJobIds = jobs.filter(j => j.job_status === "cancelled").map(j => j.id);
+  const highSafetyDriverIds = drivers.filter(d => d.performance?.safety_rating >= 4.5).map(d => d.id);
+  const activeDriverIds = drivers.filter(d => d.employment?.status === "active").map(d => d.id);
+
   // Computed data for charts
   const jobStatusData = useMemo(
     () => [
@@ -174,7 +180,8 @@ export default function Dashboard() {
         type: "cancelled",
         count: cancelledJobs,
         message: `${cancelledJobs} cancelled job(s) need attention`,
-        to: "jobs"
+        to: "/Jobs",
+        search: { job_status: "cancelled" }
       });
     }
 
@@ -256,13 +263,13 @@ export default function Dashboard() {
               {criticalAlerts.map((alert, index) => {
                 const linkProps = {
                   to: alert.to,
-                  ...(alert.search ? { search: alert.search } : {}),
+                  ...(alert.search ? { search: alert.search as any } : {}),
                   key: index,
                   className: "bg-white p-3 rounded-lg border border-red-200"
                 };
                 
                 return (
-                  <Link {...linkProps as any}>
+                  <Link {...linkProps}>
                     <p className="text-sm text-red-700">{alert.message}</p>
                   </Link>
                 );
@@ -273,7 +280,11 @@ export default function Dashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <Link
+            to="/Drivers"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition"
+            search={{} as any} // all drivers
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -291,9 +302,13 @@ export default function Dashboard() {
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <Link
+            to="/Jobs"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition"
+            search={{ job_status: 'in-progress' } as any}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Jobs</p>
@@ -308,9 +323,13 @@ export default function Dashboard() {
                 <Activity className="w-6 h-6 text-green-600" />
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <Link
+            to="/Trucks"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition"
+            search={{} as any} // all trucks
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Fleet Size</p>
@@ -323,9 +342,13 @@ export default function Dashboard() {
                 <TruckIcon className="w-6 h-6 text-orange-600" />
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <Link
+            to="/Drivers"
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition"
+            search={{ id: highSafetyDriverIds } as any}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">High Safety</p>
@@ -338,7 +361,7 @@ export default function Dashboard() {
                 <Shield className="w-6 h-6 text-purple-600" />
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Main Content Grid */}
@@ -436,7 +459,11 @@ export default function Dashboard() {
           </div>
 
           {/* Active Drivers */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <Link
+            to="/Drivers"
+            search={{ is_active: 'true' } as any}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition"
+          >
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
               <Target className="w-5 h-5 text-purple-600" />
               Active Drivers
@@ -465,53 +492,55 @@ export default function Dashboard() {
                     <span>{driver.current_assignment.route}</span>
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
-                    Safety: {driver.performance.safety_rating}/10 • On-time:{" "}
-                    {driver.performance.on_time_delivery_rate}%
+                    Safety: {driver.performance.safety_rating}/10 • On-time: {driver.performance.on_time_delivery_rate}%
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </Link>
         </div>
 
-        {/* Fleet Overview */}
+        {/* Recent Activity (replaces Fleet Overview) */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <TruckIcon className="w-5 h-5 text-orange-600" />
-            Fleet Overview
+            <Activity className="w-5 h-5 text-blue-600" />
+            Recent Activity
           </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {trucks.map((truck) => (
-              <div
-                key={truck.id}
-                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      {truck.make} {truck.model}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {truck.plate} • {truck.year}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {truck.mileage.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-gray-600">miles</p>
-                    {truck.mileage > 100000 && (
-                      <AlertTriangle className="w-4 h-4 text-yellow-500 ml-auto mt-1" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <span>{truck.assign_driver}</span>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Recent Jobs</h3>
+              <ul className="divide-y divide-gray-200">
+                {jobs.slice(-5).reverse().map(job => (
+                  <li key={job.id} className="py-2 flex flex-col">
+                    <Link
+                      to="/jobs/$jobsId"
+                      params={{ jobsId: String(job.id) }}
+                      className="font-medium hover:underline w-fit"
+                    >
+                      {job.job_number || `Job #${job.id}`}
+                    </Link>
+                    <span className="text-xs text-gray-600">Status: {job.job_status}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Recent Drivers</h3>
+              <ul className="divide-y divide-gray-200">
+                {drivers.slice(-5).reverse().map(driver => (
+                  <li key={driver.id} className="py-2 flex flex-col">
+                    <Link
+                      to="/drivers/$driverId"
+                      params={{ driverId: String(driver.id) }}
+                      className="font-medium hover:underline w-fit"
+                    >
+                      {driver.first_name} {driver.last_name}
+                    </Link>
+                    <span className="text-xs text-gray-600">Status: {driver.employment?.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
