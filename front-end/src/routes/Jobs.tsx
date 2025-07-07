@@ -41,6 +41,16 @@ export default function Jobs() {
   // Initialize constructor with custom column configurations
   const [constructor] = useState(() => new DataTableConstructor<Job>(jobs, {
     autoDetectTypes: true,
+    showColumns: [
+      "job_number",
+      "job_date",
+      "job_type",
+      "driver",
+      "vehicle",
+      "estimatedValue",
+      "priority",
+      "job_status"
+    ],
     columns: {
       job_number: {
         label: 'Job Number',

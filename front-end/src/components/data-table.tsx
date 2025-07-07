@@ -69,6 +69,7 @@ import type {
 } from "./data-table-types";
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from "./data-table-types";
+import { useEffect } from "react";
 
 function DataTableRowInner<T extends { id?: string | number }>(
   props: DataTableRowProps<T>
@@ -274,11 +275,11 @@ function ColumnFilter<T extends { id?: string | number }>({
   // Get unique values for filtering
   const uniqueValues = React.useMemo(() => {
     // Ensure columns object exists
-    if (!data.columns || typeof data.columns !== 'object') {
+    if (!data.columns || typeof data.columns !== "object") {
       console.warn("ColumnFilter: Invalid columns structure", data.columns);
       return [];
     }
-    
+
     const columnConfig = data.columns[columnKey];
     if (columnConfig?.filterConfig?.getUniques) {
       // uniqueItems should already be strings from the constructor
@@ -293,7 +294,11 @@ function ColumnFilter<T extends { id?: string | number }>({
           const boolStr = String(value).toLowerCase();
           if (boolStr === "true" || boolStr === "1" || boolStr === "yes") {
             values.add("true");
-          } else if (boolStr === "false" || boolStr === "0" || boolStr === "no") {
+          } else if (
+            boolStr === "false" ||
+            boolStr === "0" ||
+            boolStr === "no"
+          ) {
             values.add("false");
           }
         } else {
@@ -306,12 +311,13 @@ function ColumnFilter<T extends { id?: string | number }>({
 
   let filteredValues: any[] = [];
   // Ensure columns object exists
-  if (data.columns && typeof data.columns === 'object') {
+  if (data.columns && typeof data.columns === "object") {
     const columnConfig = data.columns[columnKey];
     if (columnConfig?.filterConfig?.getUniques) {
-      filteredValues = columnConfig.uniqueItems?.filter((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      ) || [];
+      filteredValues =
+        columnConfig.uniqueItems?.filter((value) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        ) || [];
     } else {
       filteredValues = uniqueValues.filter((value) =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
@@ -464,6 +470,7 @@ export function DataTable<T extends { id?: string | number }>({
   const [columnVisibility, setColumnVisibility] = React.useState<
     Record<string, boolean>
   >({});
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: defaultPageSize,
@@ -486,6 +493,15 @@ export function DataTable<T extends { id?: string | number }>({
       return new DataTableConstructor<T>([], {});
     }
   }, [data, dataConstructorConfig]);
+
+  // Initialize column visibility from constructor
+  React.useEffect(() => {
+    const visibility: Record<string, boolean> = {};
+    constructor.getDataTableColumns().forEach(col => {
+      visibility[col.key] = col.visible;
+    });
+    setColumnVisibility(visibility);
+  }, [constructor]);
 
   // Auto-generate columns if requested
   const finalColumns = React.useMemo(() => {
@@ -544,7 +560,7 @@ export function DataTable<T extends { id?: string | number }>({
 
     // Use constructor's sort function if available
     const sortFunction = constructor?.getSortFunction(sorting.columnKey);
-    
+
     if (sortFunction) {
       return [...filteredData].sort((a, b) => {
         const aValue = a[sorting.columnKey as keyof T];
@@ -662,7 +678,7 @@ export function DataTable<T extends { id?: string | number }>({
   };
 
   // Reset pagination when filters or search change
-  React.useEffect(() => {
+  useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [filters, globalSearch]);
 
@@ -673,7 +689,6 @@ export function DataTable<T extends { id?: string | number }>({
   const isAllSelected =
     paginatedData.length > 0 &&
     paginatedData.every((row) => row.id && rowSelection[String(row.id)]);
- 
 
   if (loading) {
     return (
@@ -757,12 +772,19 @@ export function DataTable<T extends { id?: string | number }>({
                   key={column.key as string}
                   className="capitalize"
                   checked={columnVisibility[column.key as string] !== false}
-                  onCheckedChange={(value) =>
-                    setColumnVisibility((prev) => ({
+                  onCheckedChange={(value) => {
+                    const columnKey = column.key as string;
+                    if (value) {
+                      constructor.showColumn(columnKey);
+                    } else {
+                      constructor.hideColumn(columnKey);
+                    }
+                    // Update local state
+                    setColumnVisibility(prev => ({
                       ...prev,
-                      [column.key as string]: !!value,
-                    }))
-                  }
+                      [columnKey]: value
+                    }));
+                  }}
                 >
                   {column.label}
                 </DropdownMenuCheckboxItem>

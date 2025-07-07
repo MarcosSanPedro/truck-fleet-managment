@@ -53,6 +53,7 @@ export interface DataTableConfig {
   enableRowSelection?: boolean;
   enableGlobalSearch?: boolean;
   enableExport?: boolean;
+  showColumns?: string[]; // Array of column keys to show by default
   // Add other config options as needed
   [key: string]: any;
 }
@@ -126,6 +127,11 @@ export class DataTableConstructor<T extends Record<string, any>> {
     this.columns = config.columns || {};
     this.detectedColumns = [];
 
+    // Initialize showColumns if not provided
+    if (!this.config.showColumns) {
+      this.config.showColumns = [];
+    }
+
     if (config.autoDetectTypes !== false) {
       this.autoGenTypes();
     }
@@ -145,6 +151,10 @@ export class DataTableConstructor<T extends Record<string, any>> {
       const columnAnalysis = this.analyzeColumn(column);
       this.detectedColumns.push(columnAnalysis);
 
+      // Determine if column should be visible based on showColumns config
+      const isVisible = this.config.showColumns!.length === 0 || 
+                       this.config.showColumns!.includes(column);
+
       // Create default column configuration
       const columnConfig: DataTableColumnConfig = {
         label: this.generateLabel(column),
@@ -159,7 +169,7 @@ export class DataTableConstructor<T extends Record<string, any>> {
           enabled: columnAnalysis.isFilterable
         },
         placeHolder: `Search for ${this.generateLabel(column)}...`,
-        visible: true,
+        visible: isVisible,
         enableSorting: columnAnalysis.isSortable,
         enableHiding: true,
         enableFiltering: columnAnalysis.isFilterable,
@@ -433,5 +443,43 @@ export class DataTableConstructor<T extends Record<string, any>> {
           return strA.localeCompare(strB);
         };
     }
+  }
+
+  /**
+   * Update showColumns configuration and sync column visibility
+   */
+  updateShowColumns(showColumns: string[]): void {
+    this.config.showColumns = showColumns;
+    
+    // Update column visibility based on showColumns
+    Object.keys(this.columns).forEach(columnKey => {
+      const isVisible = showColumns.length === 0 || showColumns.includes(columnKey);
+      this.updateColumnConfig(columnKey, { visible: isVisible });
+    });
+  }
+
+  /**
+   * Add a column to showColumns
+   */
+  showColumn(columnKey: string): void {
+    if (!this.config.showColumns!.includes(columnKey)) {
+      this.config.showColumns!.push(columnKey);
+      this.updateColumnConfig(columnKey, { visible: true });
+    }
+  }
+
+  /**
+   * Remove a column from showColumns
+   */
+  hideColumn(columnKey: string): void {
+    this.config.showColumns = this.config.showColumns!.filter(key => key !== columnKey);
+    this.updateColumnConfig(columnKey, { visible: false });
+  }
+
+  /**
+   * Get current showColumns configuration
+   */
+  getShowColumns(): string[] {
+    return this.config.showColumns || [];
   }
 }
