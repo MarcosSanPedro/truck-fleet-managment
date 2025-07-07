@@ -308,7 +308,7 @@ export default function Trucks() {
           onClick: handleCreate,
           label: 'Add Truck',
         }}
-        rowLinkConfig={{ to: '/trucks/$truckId', paramKey: 'truckId' }}
+        rowLinkConfig={{ to: '/trucks', paramKey: 'truckId' }}
         dataConstructorConfig={constructor.config}
         autoGenerateColumns={false}
       />

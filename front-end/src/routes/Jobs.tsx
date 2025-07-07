@@ -352,7 +352,7 @@ export default function Jobs() {
           onClick: handleCreate,
           label: 'Add Job',
         }}
-        rowLinkConfig={{ to: '/jobs/$jobId', paramKey: 'jobId' }}
+        rowLinkConfig={{ to: '/jobs', paramKey: 'jobId' }}
         dataConstructorConfig={constructor.config}
         autoGenerateColumns={false}
       />
