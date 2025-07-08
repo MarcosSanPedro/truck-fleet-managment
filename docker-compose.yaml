@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 5
     command: >
-      sh -c "uvicorn main:app --host 0.0.0.0 --port 8000"
+      sh -c "pip install gunicorn && gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
 
   frontend:
     build:
@@ -31,6 +31,7 @@ services:
     environment:
       # Coolify will inject SERVICE_FQDN_FRONTEND_3000 for domain
       - SERVICE_FQDN_FRONTEND_3000
+      - VITE_API_URL=http://backend:8000
       # Add VITE_API_URL or similar if your frontend fetches from backend
       # - VITE_API_URL=http://backend:8000
     ports:
