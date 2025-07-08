@@ -1,4 +1,4 @@
-import type { Driver, Truck } from "../types/index";
+import type { Driver, Truck, Job } from "../types/index";
 
 
 export const emptyDriver: Omit<Driver, "id"> = {
@@ -75,3 +75,24 @@ export const emptyTruck: Omit<Truck, "id"> = {
   registration_expiry: "",
   assign_driver: "",
 }
+
+export const emptyJob: Omit<Job, "id"> = {
+  job_number: "",
+  job_date: "",
+  job_type: "",
+  job_description: "",
+  job_status: "",
+  priority: "",
+  estimatedValue: "",
+  weight: "",
+  distance: "",
+  estimatedDuration: "",
+  origin: "",
+  destination: "",
+  driver: "",
+  vehicle: "",
+  specialRequirements: [],
+  progress: 0,
+  nextCheckpoint: "",
+  eta: "",
+};

@@ -20,7 +20,6 @@ import {
   IconTrash,
   IconEdit,
   IconCopy,
-  IconStar,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
