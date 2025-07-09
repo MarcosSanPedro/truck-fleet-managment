@@ -3,7 +3,6 @@ import useEntityDetails from "../../lib/useEntityDetails";
 import { apiService } from "../../services/api";
 import type { Job } from "../../types/index";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
 
 export const Route = createFileRoute("/jobs/$jobsId")({
   component: JobsDetails,
