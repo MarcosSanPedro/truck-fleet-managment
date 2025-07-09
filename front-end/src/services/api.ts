@@ -27,7 +27,7 @@ class ApiService {
    * @throws {Error} If the API request fails.
    */
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = new URL(endpoint + "/", this.baseUrl).toString();
+    const url = new URL(endpoint, this.baseUrl).toString();
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
