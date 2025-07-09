@@ -27,7 +27,11 @@ class ApiService {
    * @throws {Error} If the API request fails.
    */
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = new URL(endpoint + "/", this.baseUrl).toString();
+    // Add trailing slash only if the endpoint doesn't already end with a slash
+    // and doesn't contain an ID (individual item requests)
+    const shouldAddTrailingSlash = !endpoint.endsWith('/') && !endpoint.match(/\/\d+$/);
+    const finalEndpoint = shouldAddTrailingSlash ? endpoint + "/" : endpoint;
+    const url = new URL(finalEndpoint, this.baseUrl).toString();
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
