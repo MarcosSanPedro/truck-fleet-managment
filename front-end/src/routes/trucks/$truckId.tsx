@@ -10,8 +10,6 @@ import {
   Truck as TruckIcon,
   Fuel,
   MapPin,
-  Calendar,
-  Settings,
   Shield,
   FileText,
   Activity,
@@ -23,9 +21,7 @@ import {
   AlertCircle,
   XCircle,
   Phone,
-  MessageSquare,
   Navigation,
-  Thermometer,
   Weight,
   Package
 } from 'lucide-react';
@@ -495,7 +491,7 @@ function TruckDetail() {
                   <div className="text-sm text-blue-700">Expires {isEditing ? <input className="w-full bg-white border-b border-gray-300 focus:outline-none focus:border-blue-500" type="date" value={editedEntity?.registration_expiry || ''} onChange={e => handleFieldChange('registration_expiry', e.target.value)} /> : formatDate(truck.registration_expiry)}</div>
                 </div>
               </div>
-              <button className="w-full mt-4 px-4 py-2 text-sm font-medium text-orange-700 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"><Settings className="w-4 h-4 mr-2 inline" />Schedule Maintenance</button>
+              
             </div>
             {/* Location */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

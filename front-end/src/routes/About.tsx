@@ -230,7 +230,7 @@ function RouteComponent() {
       <div className="relative z-10 text-white">
         {/* Hero Section - Compact */}
         <section className="py-20 px-4 sm:px-6 lg:px-8">
-          <div className={`text-center max-w-5xl mx-auto transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className={`text-center max-w-5xl mx-auto transition-all duration-1000 ${isVisible ? `opacity-100 translate-y-0` : `opacity-0 translate-y-10`}`}>
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-cyan-500 rounded-full mb-6 shadow-2xl">
                 <Truck className="w-12 h-12 text-white" />
@@ -248,7 +248,7 @@ function RouteComponent() {
               
               <p className="text-lg text-gray-300 max-w-3xl mx-auto">
                 A sophisticated full-stack application by{' '}
-                <span className="font-bold text-blue-400">Marcos San Pedro</span>{' '}
+                <span className="font-bold text-blue-400">Marcos San Pedro</span>{" "}
                 demonstrating advanced software development and modern architecture.
               </p>
             </div>

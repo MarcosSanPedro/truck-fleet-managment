@@ -178,7 +178,7 @@ export default function Trucks() {
     }
 
     const confirmDelete = window.confirm(
-      `¿Está seguro de que desea eliminar el camión ${truck.make} ${truck.model} (${truck.plate})?`
+      `Are you sure you want to delete ${truck.make} ${truck.model} (${truck.plate})?`
     );
 
     if (!confirmDelete) return;
@@ -191,7 +191,7 @@ export default function Trucks() {
       setTrucks((prev) => prev.filter((t) => t.id !== truck.id));
     } catch (error) {
       console.error('Error deleting truck:', error);
-      setError('Error al eliminar el camión. Por favor, inténtelo de nuevo.');
+      setError('Error deleting truck:');
     } finally {
       setIsLoading(false);
     }
@@ -231,8 +231,8 @@ export default function Trucks() {
         console.error('Error saving truck:', error);
         setError(
           editingTruck
-            ? 'Error al actualizar el camión. Por favor, inténtelo de nuevo.'
-            : 'Error al crear el camión. Por favor, inténtelo de nuevo.'
+            ? 'Error updating the truck.'
+            : 'Error creating the truck.'
         );
       } finally {
         setIsLoading(false);

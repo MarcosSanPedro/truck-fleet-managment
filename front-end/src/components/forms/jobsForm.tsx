@@ -20,7 +20,6 @@ import {
   Target,
   CheckCircle,
   AlertCircle,
-  Save,
   X,
   Plus,
   Flag,
@@ -608,18 +607,7 @@ export const JobForm: React.FC<JobFormProps> = ({ job, onSubmit, onCancel }) => 
                 onClick={handleSaveDraft}
                 className="flex items-center justify-center gap-2 px-6 py-3 border border-blue-300 bg-blue-50 rounded-xl text-sm font-medium text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
-                <Save className="w-4 h-4" />
-                Save as Draft
-              </button>
-              <button
-                type="submit"
-                disabled={!isValid}
-                className={`flex items-center justify-center gap-2 px-6 py-3 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white transition-all duration-200 ${
-                  !isValid
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:-translate-y-0.5 hover:shadow-lg"
-                }`}
-              >
+              
                 <Plus className="w-4 h-4" />
                 {job ? "Update" : "Create"} Job
               </button>

@@ -57,7 +57,10 @@ app = FastAPI(
 )
 
 # Configure CORS
-origins = ["*"]
+origins = [
+    "https://truckfleet.dev",
+    "https://www.truckfleet.dev"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
