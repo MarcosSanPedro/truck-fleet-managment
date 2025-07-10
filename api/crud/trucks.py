@@ -32,11 +32,16 @@ def update_truck(db: Session, truck_id: int, updated: TruckUpdate):
 
 # DELETE: Remove truck
 def delete_truck(db: Session, truck_id: int):
+    from models.maintenance import Maintenance  # Import here to avoid circular import
+    db_truck = db.query(Truck).filter(Truck.id == truck_id).first()
+    if not db_truck:
+        return None
+    # Delete all related maintenances first
+    db.query(Maintenance).filter(Maintenance.truck_id == truck_id).delete()
     try:
-        db_truck = db.query(Truck).filter(Truck.id == truck_id).first()
-    except Exception as err:
-        print("[xx] sampiss", err)
-    if db_truck:
         db.delete(db_truck)
         db.commit()
-    return db_truck
+        return db_truck
+    except Exception as err:
+        print("[xx] sampiss", err)
+        raise

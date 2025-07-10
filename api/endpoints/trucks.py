@@ -40,9 +40,9 @@ def update_truck(truck_id: int, truck: TruckUpdate, db: Session = Depends(get_db
 def delete_truck(truck_id: int, db: Session = Depends(get_db)):
     try:
         deleted_truck = crud_truck.delete_truck(db, truck_id)
+        if not deleted_truck:
+            raise HTTPException(status_code=404, detail="Truck not found")
+        return {"detail": "Truck deleted successfully"}
     except Exception as err:
-        print('hi mendez', err)
-
-    if not deleted_truck:
-        raise HTTPException(status_code=404, detail="Truck not found")
-    return {"detail": "Truck deleted successfully"}
+        print('Error deleting truck:', err)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {err}")

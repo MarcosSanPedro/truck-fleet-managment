@@ -30,7 +30,6 @@ class Truck(Base):
     downtime_hours = Column(Integer, nullable=False)
     features = Column(JSON, nullable=False)
     condition_score = Column(Integer, nullable=False)
-    maintenances = relationship("Maintenance", back_populates="truck")
 
 
 # Optional: Import Maintenance after class definition
