@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import { LayoutDashboard, Users, Briefcase, Truck, ScanFace } from 'lucide-react';
 import { Link, useLocation } from '@tanstack/react-router';
 

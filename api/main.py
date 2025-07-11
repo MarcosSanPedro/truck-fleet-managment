@@ -60,7 +60,6 @@ app = FastAPI(
 origins = [
     "https://truckfleet.dev",
     "https://www.truckfleet.dev"
-    "http://localhost:3000"
 ]
 app.add_middleware(
     CORSMiddleware,
