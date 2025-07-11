@@ -23,6 +23,7 @@ import {
 import { apiService } from "../../services/api";
 import type { Driver } from "../../types/index";
 import useEntityDetails from "../../lib/useEntityDetails";
+  
 
 export const Route = createFileRoute("/drivers/$driverId")({
   component: DriversDetails,
