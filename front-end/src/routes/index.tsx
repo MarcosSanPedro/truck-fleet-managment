@@ -232,25 +232,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="relative group">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search fleet data..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent w-72 bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md"
-                />
-              </div>
-              <button
-                onClick={exportData}
-                className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Download className="w-5 h-5" />
-                <span className="font-medium">Export Data</span>
-              </button>
-            </div>
           </div>
         </div>
 
