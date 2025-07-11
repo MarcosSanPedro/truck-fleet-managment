@@ -56,25 +56,10 @@ function DriversDetails() {
     deleteEntity,
     handleFieldChange,
     handleNestedFieldChange,
-    setIsEditing,
   } = useEntityDetails<Driver>("drivers", loaderDriver);
 
   // For double-nested fields (e.g., certifications.drug_test_date)
-  const handleDoubleNestedFieldChange = (
-    section: string,
-    subSection: string,
-    field: string,
-    value: any
-  ) => {
-    if (!editedDriver) return;
-    handleFieldChange(section, {
-      ...((editedDriver as any)[section] || {}),
-      [subSection]: {
-        ...(((editedDriver as any)[section]?.[subSection]) || {}),
-        [field]: value,
-      },
-    });
-  };
+ 
 
   const formatDate = (dateString?: string) =>
     dateString

@@ -11,8 +11,6 @@ import {
   AlertTriangle,
   MapPin,
   Shield,
-  Search,
-  Download,
   TrendingUp,
   Target,
   Activity,
@@ -37,7 +35,6 @@ export const Route = createFileRoute("/")({
 })
 
 export default function Dashboard() {
-  const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
 
   // Data states
@@ -77,10 +74,7 @@ export default function Dashboard() {
   }
 
   // Helper: get IDs for filtered sets
-  const activeJobIds = jobs.filter((j) => j.job_status === "in-progress").map((j) => j.id)
-  const cancelledJobIds = jobs.filter((j) => j.job_status === "cancelled").map((j) => j.id)
   const highSafetyDriverIds = drivers.filter((d) => d.performance?.safety_rating >= 4.5).map((d) => d.id)
-  const activeDriverIds = drivers.filter((d) => d.employment?.status === "active").map((d) => d.id)
 
   // Computed data for charts
   const jobStatusData = useMemo(
@@ -193,10 +187,6 @@ export default function Dashboard() {
     return classes[status] || "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200"
   }
 
-  function exportData(): void {
-    console.log("Exporting dashboard data...")
-    alert("Dashboard data exported successfully!")
-  }
 
   if (loading) {
     return (
