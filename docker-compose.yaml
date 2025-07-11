@@ -7,9 +7,7 @@ services:
     container_name: truck-fleet-backend
     restart: unless-stopped
     environment:
-      # Coolify will inject SERVICE_FQDN_BACKEND_8000 for domain
       - SERVICE_FQDN_BACKEND_8000
-      # You can override the database path if you update your code to use an env var
       # - SQLALCHEMY_DATABASE_URL=sqlite:///data/truckfleet.db
     volumes:
       - truckfleet-db:/app/truckfleet-data
@@ -29,24 +27,20 @@ services:
     container_name: truck-fleet-frontend
     restart: unless-stopped
     environment:
-      # Coolify will inject SERVICE_FQDN_FRONTEND_3000 for domain
       - SERVICE_FQDN_FRONTEND_3000
       - VITE_API_URL=http://backend:8000
-      # Add VITE_API_URL or similar if your frontend fetches from backend
-      # - VITE_API_URL=http://backend:8000
     ports:
-      - "3000:3000"
+      - "3000:80"  # Map host port 3000 to container port 80 (Nginx)
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]  # Update to port 80
       interval: 10s
       timeout: 5s
       retries: 5
-    command: >
-      sh -c "bun run build && bunx serve ./dist --port 3000 --host 0.0.0.0"
+    # Remove the command since the build happens in the Dockerfile
+    # command: sh -c "bun run build && bunx serve ./dist --port 3000 --host 0.0.0.0"
 
 volumes:
   truckfleet-db:
     driver: local
-    # This volume will persist the SQLite database file 
