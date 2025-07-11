@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { LayoutDashboard, Users, Briefcase, Truck } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, Truck, ScanFace } from 'lucide-react';
 import { Link, useLocation } from '@tanstack/react-router';
 
 interface LayoutProps {
@@ -12,6 +12,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Drivers', path: '/drivers', icon: Users },
     { name: 'Jobs', path: '/jobs', icon: Briefcase },
     { name: 'Trucks', path: '/trucks', icon: Truck },
+    { name: 'About Me', path: '/about', icon: ScanFace },
   ]
 
   const location = useLocation();
@@ -53,8 +54,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="px-4 sm:px-6">
           <div className="flex space-x-4 overflow-x-auto py-2">
             {navigation.map((item) => (
-              <button
+              <Link
                 key={item.path}
+                to={item.path}
                 className={`${
                   location.pathname === item.path
                     ? 'bg-blue-100 text-blue-700'
@@ -63,7 +65,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <item.icon className="h-4 w-4 mr-2" />
                 {item.name}
-              </button>
+              </Link>
             ))}
           </div>
         </div>
